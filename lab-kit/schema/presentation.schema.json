@@ -1,0 +1,426 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.edu/lab-kit/presentation.schema.json",
+  "title": "EduVoiceLab Presentation",
+  "description": "Полное описание интерактивной учебной презентации: UI, симулятор, авто-демо, сценарий для голосовой ИИ, вопросы школьнику.",
+  "type": "object",
+  "required": [
+    "meta",
+    "learning",
+    "ui",
+    "simulator",
+    "autoDemo",
+    "voiceScript",
+    "interaction"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["id", "title", "subject", "grade", "lang", "durationSec"],
+      "properties": {
+        "id": { "type": "string", "description": "slug, например plavanie-tel" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "subject": { "type": "string", "examples": ["физика", "математика"] },
+        "grade": { "type": "string", "examples": ["7", "8-9", "10"] },
+        "lang": { "type": "string", "default": "ru" },
+        "durationSec": { "type": "integer", "minimum": 60, "description": "Целевая длина озвучки" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "version": { "type": "string", "default": "1.0.0" }
+      }
+    },
+    "learning": {
+      "type": "object",
+      "required": ["goal", "objectives", "misconceptions", "formulas", "takeaways"],
+      "properties": {
+        "goal": { "type": "string", "description": "Одна фраза: чему научится ученик" },
+        "objectives": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string" },
+          "description": "Конкретные умения после урока"
+        },
+        "prerequisites": { "type": "array", "items": { "type": "string" } },
+        "misconceptions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["wrong", "right", "howDemoShows"],
+            "properties": {
+              "wrong": { "type": "string" },
+              "right": { "type": "string" },
+              "howDemoShows": { "type": "string" }
+            }
+          }
+        },
+        "formulas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["latex", "plain", "whenSay"],
+            "properties": {
+              "id": { "type": "string" },
+              "latex": { "type": "string" },
+              "plain": { "type": "string", "description": "Как произнести вслух" },
+              "whenSay": { "type": "string" }
+            }
+          }
+        },
+        "takeaways": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string" }
+        },
+        "realWorld": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Связь с жизнью / техникой"
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "required": ["theme", "layout", "sections"],
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": ["edu-light", "lab-dark", "neon-circuit"],
+          "default": "edu-light"
+        },
+        "layout": {
+          "type": "string",
+          "enum": ["scroll-lesson", "fullscreen-lab"],
+          "default": "scroll-lesson"
+        },
+        "sections": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["id", "kicker", "title", "bodyHtml"],
+            "properties": {
+              "id": { "type": "string" },
+              "kicker": { "type": "string" },
+              "title": { "type": "string" },
+              "bodyHtml": { "type": "string" },
+              "highlight": { "type": "boolean", "default": false }
+            }
+          }
+        }
+      }
+    },
+    "simulator": {
+      "type": "object",
+      "required": ["engine", "controls", "readouts", "defaults"],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": [
+            "compare-three-outcomes",
+            "sliders-instruments",
+            "forces-balance",
+            "particles-flow",
+            "graph-area",
+            "assembly",
+            "custom"
+          ],
+          "description": "Тип движка из каталога lab-kit"
+        },
+        "engineHint": {
+          "type": "string",
+          "description": "Если custom — что именно симулируем"
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "label", "min", "max", "step", "unit", "default"],
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "type": "string", "enum": ["range", "select", "toggle", "button", "mode"] },
+              "label": { "type": "string" },
+              "min": { "type": ["number", "null"] },
+              "max": { "type": ["number", "null"] },
+              "step": { "type": ["number", "null"] },
+              "unit": { "type": "string" },
+              "default": {},
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {},
+                    "label": { "type": "string" }
+                  }
+                }
+              },
+              "speakAs": {
+                "type": "string",
+                "description": "Как голосовая ИИ называет этот контрол"
+              }
+            }
+          }
+        },
+        "readouts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "unit", "format"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "unit": { "type": "string" },
+              "format": { "type": "string", "examples": ["int", "1dec", "2dec", "percent"] },
+              "colorRole": { "type": "string", "enum": ["neutral", "good", "warn", "accent"] }
+            }
+          }
+        },
+        "defaults": {
+          "type": "object",
+          "description": "Начальное состояние симулятора key→value"
+        },
+        "verdictRules": {
+          "type": "array",
+          "description": "Правила текстового вердикта для UI и озвучки",
+          "items": {
+            "type": "object",
+            "required": ["when", "text", "tone"],
+            "properties": {
+              "when": { "type": "string", "description": "Условие на человеческом/псевдокоде" },
+              "text": { "type": "string" },
+              "tone": { "type": "string", "enum": ["good", "warn", "neutral", "info"] }
+            }
+          }
+        }
+      }
+    },
+    "autoDemo": {
+      "type": "object",
+      "required": ["enabledByDefault", "loop", "steps"],
+      "properties": {
+        "enabledByDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "Галочка «Авто-демо» включена по умолчанию"
+        },
+        "loop": { "type": "boolean", "default": true },
+        "pauseBetweenLoopsMs": { "type": "integer", "default": 1800 },
+        "labelOn": {
+          "type": "string",
+          "default": "Авто-демо"
+        },
+        "labelHint": {
+          "type": "string",
+          "default": "Сними галочку, чтобы крутить ползунки сам"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 3,
+          "description": "Ключевые кадры авто-режима. Пока auto=on, UI tween'ит к этим состояниям.",
+          "items": {
+            "type": "object",
+            "required": ["id", "durationMs", "state", "sayId"],
+            "properties": {
+              "id": { "type": "string" },
+              "durationMs": { "type": "integer", "minimum": 400 },
+              "easing": { "type": "string", "enum": ["linear", "easeInOut", "easeOut"], "default": "easeInOut" },
+              "state": {
+                "type": "object",
+                "description": "Целевые значения controls + mode"
+              },
+              "highlight": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "id контролов/readouts подсветить"
+              },
+              "sayId": {
+                "type": "string",
+                "description": "Ссылка на voiceScript.beats[].id"
+              },
+              "waitForVoice": {
+                "type": "boolean",
+                "default": true,
+                "description": "Ждать конец фразы голосовой ИИ перед следующим шагом"
+              }
+            }
+          }
+        }
+      }
+    },
+    "voiceScript": {
+      "type": "object",
+      "required": ["persona", "style", "beats"],
+      "description": "Сценарий для голосовой ИИ. Это главный контракт озвучки.",
+      "properties": {
+        "persona": {
+          "type": "object",
+          "required": ["name", "role", "tone"],
+          "properties": {
+            "name": { "type": "string", "default": "Учитель" },
+            "role": { "type": "string", "default": "дружелюбный учитель физики" },
+            "tone": {
+              "type": "string",
+              "description": "живой, ясный, без сюсюканья; короткие предложения"
+            },
+            "addressAs": { "type": "string", "default": "ты" }
+          }
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "pace": { "type": "string", "enum": ["slow", "normal", "energetic"], "default": "normal" },
+            "maxSentenceWords": { "type": "integer", "default": 18 },
+            "allowQuestions": { "type": "boolean", "default": true },
+            "pauseAfterQuestionMs": { "type": "integer", "default": 2200 },
+            "spellFormulas": { "type": "boolean", "default": true },
+            "neverSay": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Запрещённые формулировки"
+            }
+          }
+        },
+        "beats": {
+          "type": "array",
+          "minItems": 5,
+          "description": "Хронология озвучки. 1 beat ≈ 1 мысль + 1 действие на экране.",
+          "items": {
+            "type": "object",
+            "required": ["id", "phase", "say", "onScreen"],
+            "properties": {
+              "id": { "type": "string" },
+              "phase": {
+                "type": "string",
+                "enum": [
+                  "hook",
+                  "setup",
+                  "demo",
+                  "explain",
+                  "formula",
+                  "question",
+                  "answer",
+                  "transfer",
+                  "summary",
+                  "outro"
+                ]
+              },
+              "say": {
+                "type": "string",
+                "description": "Готовый текст для TTS. Уже разговорный, без markdown."
+              },
+              "sayAlt": {
+                "type": "string",
+                "description": "Короткая альтернатива, если нужно уложиться в тайминг"
+              },
+              "onScreen": {
+                "type": "string",
+                "description": "Что должно быть видно/подсвечено в этот момент"
+              },
+              "autoStepId": {
+                "type": "string",
+                "description": "Связь с autoDemo.steps[].id"
+              },
+              "emphasis": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Слова/числа чуть громче или с паузой"
+              },
+              "ssmlHints": {
+                "type": "object",
+                "properties": {
+                  "pauseBeforeMs": { "type": "integer" },
+                  "pauseAfterMs": { "type": "integer" },
+                  "rate": { "type": "number" }
+                }
+              },
+              "expectStudent": {
+                "type": "string",
+                "enum": ["listen", "think", "answer_aloud", "touch_ui", "observe"],
+                "default": "listen"
+              }
+            }
+          }
+        },
+        "fullNarration": {
+          "type": "string",
+          "description": "Склеенный полный текст озвучки (удобно отдать в TTS одним куском)"
+        }
+      }
+    },
+    "interaction": {
+      "type": "object",
+      "required": ["autoDefault", "manualUnlock", "questions"],
+      "properties": {
+        "autoDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "true = авто-демо включено при открытии"
+        },
+        "manualUnlock": {
+          "type": "object",
+          "required": ["checkboxId", "whenUnchecked"],
+          "properties": {
+            "checkboxId": { "type": "string", "default": "autoDemo" },
+            "label": { "type": "string", "default": "Авто-демо" },
+            "whenUnchecked": {
+              "type": "string",
+              "default": "Остановить tween, разблокировать все controls, показать hint «попробуй сам»"
+            },
+            "whenChecked": {
+              "type": "string",
+              "default": "Снова запустить autoDemo с текущего/первого шага"
+            }
+          }
+        },
+        "guidedTouches": {
+          "type": "array",
+          "description": "Моменты, когда голос просит ученика потрогать UI (только если auto выкл или pause)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "afterBeatId": { "type": "string" },
+              "prompt": { "type": "string" },
+              "targetControlId": { "type": "string" },
+              "successWhen": { "type": "string" }
+            }
+          }
+        },
+        "questions": {
+          "type": "array",
+          "minItems": 2,
+          "description": "Вопросы школьнику (озвучка + опционально UI)",
+          "items": {
+            "type": "object",
+            "required": ["id", "ask", "waitMs", "idealAnswer", "ifWrongHint", "beatId"],
+            "properties": {
+              "id": { "type": "string" },
+              "ask": { "type": "string" },
+              "waitMs": { "type": "integer", "default": 2500 },
+              "idealAnswer": { "type": "string" },
+              "acceptKeywords": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Для будущей voice-STT проверки"
+              },
+              "ifWrongHint": { "type": "string" },
+              "revealOnScreen": { "type": "string" },
+              "beatId": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "export": {
+      "type": "object",
+      "description": "Как отдавать артефакты наружу",
+      "properties": {
+        "htmlFile": { "type": "string" },
+        "manifestFile": { "type": "string", "default": "presentation.manifest.json" },
+        "voiceJsonFile": { "type": "string", "default": "voice-script.json" },
+        "ttsPlainFile": { "type": "string", "default": "narration.txt" }
+      }
+    }
+  }
+}

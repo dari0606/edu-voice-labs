@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Давление в жидкости — слайды</title>
+<style>
+  :root{
+    --bg:#f6f5fb; --card:#fff; --ink:#232135; --muted:#6f6b80;
+    --line:#e4e1f0; --accent:#7359ff; --accent-deep:#5640d6;
+    --good:#5f8f5a; --warn:#c04f43; --blue:#4f7396;
+    --radius:18px;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(50,40,120,.1);
+    --nav-h:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(83,63,190,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(83,63,190,.045) 1px, transparent 1px);
+    background-size:28px 28px;
+  }
+  .deck{position:relative;z-index:1;height:100%;height:100dvh;display:flex;flex-direction:column}
+  .slides{flex:1;position:relative;overflow:hidden;touch-action:pan-y}
+  .slide{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px 28px 16px;width:100%;
+    opacity:0;visibility:hidden;pointer-events:none;transform:translateX(28px);
+    transition:opacity .32s ease, transform .32s ease, visibility .32s;
+    overflow:auto;-webkit-overflow-scrolling:touch;
+  }
+  .slide.active{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0)}
+  .slide.exit-left{transform:translateX(-28px);opacity:0}
+  .slide-inner{
+    width:100%;max-width:820px;margin:auto;display:flex;flex-direction:column;
+    align-items:center;text-align:center;min-height:0;
+  }
+  .badge{
+    display:inline-flex;align-self:center;padding:5px 12px;border-radius:999px;background:#fff;
+    border:1px solid var(--line);font-size:.72rem;font-weight:700;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--accent-deep);box-shadow:var(--shadow);margin-bottom:12px;
+  }
+  .kicker{font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  h1{font-size:clamp(2rem,5.5vw,3.1rem);letter-spacing:-.03em;line-height:1.1;margin-bottom:10px}
+  h2{font-size:clamp(1.45rem,3.5vw,2rem);letter-spacing:-.02em;line-height:1.15;margin-bottom:12px}
+  .lead{font-size:clamp(1.05rem,2.4vw,1.25rem);color:var(--muted);max-width:32em;line-height:1.45;margin:0 auto}
+  .body-text{font-size:clamp(1rem,2vw,1.12rem);line-height:1.55;max-width:36em;margin:0 auto}
+  .body-text + .body-text{margin-top:10px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px;width:100%;max-width:640px;margin:0 auto;text-align:left;
+  }
+  .title-glow{width:min(100%,280px);height:8px;border-radius:99px;margin:18px auto 8px;background:linear-gradient(90deg,#7359ff,#c39cff,#ff8fd0)}
+  .hint-keys{margin-top:28px;font-size:.88rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+  .kbd{display:inline-block;padding:3px 9px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:.8rem;color:var(--ink)}
+  .grid-2,.grid-3{display:grid;gap:14px;margin-top:16px;width:100%;text-align:left}
+  .grid-2{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:720px){.grid-2,.grid-3{grid-template-columns:1fr}.slide{padding:16px 14px 10px}}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);text-align:left}
+  .tile h3{font-size:1rem;margin-bottom:6px}
+  .tile p{font-size:.9rem;color:var(--muted);line-height:1.45}
+  .tile .emoji{font-size:1.5rem;margin-bottom:8px}
+  .tile.wrong{border-color:#f0c4be;background:#fff8f7}
+  .tile.right{border-color:#c5dfc2;background:#f6fbf5}
+  .tile .tag{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+  .tile.wrong .tag{color:var(--warn)}
+  .tile.right .tag{color:var(--good)}
+  .formula-big{margin:20px auto;padding:28px 20px;text-align:center;border-radius:20px;background:linear-gradient(160deg,#f0ecff,#fff);border:1px solid #dcd4ff;box-shadow:var(--shadow);width:100%;max-width:560px}
+  .formula-big .eq{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2rem,6vw,3.4rem);font-weight:700;color:var(--accent-deep)}
+  .formula-big .plain{margin-top:12px;font-size:clamp(.95rem,2vw,1.1rem);color:var(--muted)}
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px;width:100%}
+  @media (max-width:720px){.trio{grid-template-columns:1fr}}
+  .trio .t{text-align:center;padding:16px 12px;border-radius:16px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+  .trio .t b{display:block;font-size:1.35rem;color:var(--accent-deep);margin-bottom:4px}
+  .trio .t span{font-size:.88rem;color:var(--muted)}
+  #slide-lab .slide-inner,.lab-layout{max-width:920px;text-align:left;align-items:stretch}
+  .lab-layout{display:flex;flex-direction:column;gap:10px;width:100%;min-height:0}
+  .lab-layout > div:first-child{text-align:center}
+  .sim-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:14px;background:#f4f2fd;border:1px solid var(--line)}
+  .auto-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-weight:700;font-size:.9rem}
+  .auto-toggle input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+  .auto-hint{font-size:.78rem;color:var(--muted);font-weight:500;flex:1 1 140px}
+  .auto-badge{display:inline-flex;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+  .auto-badge.on{background:#e8e2ff;color:var(--accent-deep)}
+  .auto-badge.off{background:#eceef3;color:var(--muted)}
+  .stage{position:relative;border-radius:14px;background:linear-gradient(165deg,#1a1f35 0%,#12162a 55%,#0e1220 100%);border:1px solid #2a3355;overflow:hidden}
+  #scene{display:block;width:100%;height:min(38vh,280px)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px}
+  .ctrl{flex:1 1 150px;min-width:130px}
+  .ctrl label{display:flex;justify-content:space-between;gap:6px;font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:4px}
+  .ctrl label b{color:var(--accent-deep)}
+  .ctrl.locked{opacity:.55;pointer-events:none}
+  .ctrl.highlight{outline:2px solid var(--accent);outline-offset:3px;border-radius:10px;padding:4px;background:rgba(115,89,255,.06)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:7px;border-radius:999px;background:linear-gradient(90deg,#74b3f0,#7359ff,#ff8fd0);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:grab}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:2px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+  .chip.active{border-color:var(--accent);background:#f0ecff;color:var(--accent-deep)}
+  .chip:disabled{opacity:.5;cursor:not-allowed}
+  .keybtn{width:100%;display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:.85rem;color:var(--ink)}
+  .keybtn.on{border-color:var(--accent);background:#f0ecff;color:var(--accent-deep)}
+  .keybtn .st{margin-left:auto;font-size:.72rem;color:var(--muted)}
+  .gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media (max-width:640px){.gauges{grid-template-columns:repeat(2,1fr)}}
+  .gauge{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+  .gauge .g-label{font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .gauge .g-val{font-size:1.1rem;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+  .gauge .g-sub{font-size:.68rem;color:var(--muted);font-weight:600}
+  .gauge.accent .g-val{color:var(--accent-deep)}
+  .gauge.good .g-val{color:var(--good)}
+  .gauge.warn .g-val{color:var(--warn)}
+  .gauge.highlight{outline:2px solid var(--accent)}
+  .bar{height:5px;border-radius:99px;background:#eceaf5;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#ffb43a,#ffd76a)}
+  .status{padding:10px 12px;border-radius:0 12px 12px 0;border-left:4px solid var(--accent);background:#f4f2fd;font-size:.88rem;min-height:44px}
+  .status.good{background:#eef5ec;border-left-color:var(--good)}
+  .status.warn{background:#f9ecea;border-left-color:var(--warn)}
+  .voice-panel{padding:10px 12px;border-radius:12px;background:#1a1830;color:#e8e4ff;font-size:.84rem}
+  .voice-panel .vp-h{font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a89cff;margin-bottom:4px}
+  .voice-panel .vp-text{line-height:1.4;color:#f2efff}
+  .voice-panel .vp-meta{margin-top:4px;font-size:.7rem;color:#9b94c4}
+  .q-box{margin:16px auto 0;padding:18px 20px;border-radius:16px;background:linear-gradient(135deg,#f0ecff,#fff);border:1px solid #dcd4ff;width:100%;max-width:560px;text-align:center}
+  .q-box .ql{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .q-box p{font-size:clamp(1.1rem,2.5vw,1.35rem);font-weight:600;line-height:1.35}
+  .center-block{margin:auto;width:100%;justify-content:center}
+  .nav{flex:0 0 var(--nav-h);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px 14px;background:rgba(246,245,251,.92);border-top:1px solid var(--line);backdrop-filter:blur(10px)}
+  .nav-btn{border:none;cursor:pointer;font:inherit;font-weight:700;padding:12px 18px;border-radius:999px;min-width:110px;background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(115,89,255,.3)}
+  .nav-btn:hover{background:var(--accent-deep)}
+  .nav-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+  .nav-btn.ghost{background:#fff;color:var(--accent-deep);border:2px solid var(--accent);box-shadow:none}
+  .nav-center{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+  .dots{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .dot{width:9px;height:9px;border-radius:50%;border:none;padding:0;background:#d0cce0;cursor:pointer}
+  .dot.active{background:var(--accent);transform:scale(1.25)}
+  .slide-counter{font-size:.78rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="slides" id="slides">
+
+    <section class="slide active" data-slide="0" data-voice="b-hook">
+      <div class="slide-inner center-block">
+        <span class="badge">Физика · 7 класс · слайды</span>
+        <h1>Давление в жидкости</h1>
+        <div class="title-glow"></div>
+        <p class="lead">Чем глубже и гуще жидкость — тем сильнее она давит. С интерактивом и авто-демо.</p>
+        <div class="hint-keys"><span class="kbd">←</span><span class="kbd">→</span><span class="kbd">пробел</span><span>листать · свайп на телефоне</span></div>
+      </div>
+    </section>
+    <section class="slide" data-slide="1" data-voice="b-hook">
+      <div class="slide-inner center-block">
+        <div class="kicker">Загадка</div>
+        <h2>Почему уши закладывает под водой?</h2>
+        <p class="body-text">На поверхности почти не чувствуешь. На глубине — давит. Вода та же. Что изменилось?</p>
+        <div class="grid-2">
+          <div class="tile"><div class="emoji">🏊</div><h3>У поверхности</h3><p>Маленькая глубина h → маленькое давление</p></div>
+          <div class="tile"><div class="emoji">🤿</div><h3>На глубине</h3><p>Большая h → давление растёт</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-slide="2" data-voice="b-setup" id="slide-lab">
+      <div class="slide-inner lab-layout">
+        <div><div class="kicker">Симулятор</div><h2 style="font-size:clamp(1.2rem,3vw,1.55rem);margin-bottom:8px">Столб жидкости</h2></div>
+        <div class="sim-toolbar">
+          <label class="auto-toggle" for="autoDemo"><input type="checkbox" id="autoDemo" checked><span>Авто-демо</span></label>
+          <span class="auto-hint" id="autoHint">Само меняет глубину и жидкость. Сними галочку — крути сам.</span>
+          <span class="auto-badge on" id="autoBadge">AUTO</span>
+        </div>
+        <div class="stage"><canvas id="scene" width="900" height="280"></canvas></div>
+        <div class="chips" id="liqChips"></div>
+        <div class="controls">
+          <div class="ctrl" id="ctrl-h" data-control="h">
+            <label><span>Глубина h</span><b id="hVal">5,0 м</b></label>
+            <input type="range" id="h" min="0.5" max="20" step="0.5" value="5">
+          </div>
+          <div class="ctrl" id="ctrl-rho" data-control="rho">
+            <label><span>Плотность ρ</span><b id="rhoVal">1000 кг/м³</b></label>
+            <input type="range" id="rho" min="800" max="1240" step="10" value="1000">
+          </div>
+        </div>
+        <div class="gauges">
+          <div class="gauge accent" data-control="p"><div class="g-label">Давление p</div><div class="g-val" id="pVal">50 кПа</div><div class="g-sub">p = ρgh</div></div>
+          <div class="gauge"><div class="g-label">Глубина</div><div class="g-val" id="hShow">5 м</div><div class="g-sub">под поверхностью</div></div>
+          <div class="gauge"><div class="g-label">Жидкость</div><div class="g-val" id="liqName" style="font-size:.95rem">вода</div><div class="g-sub" id="rhoShow">1000 кг/м³</div></div>
+          <div class="gauge" id="g-verdict" data-control="verdict"><div class="g-label">Ощущение</div><div class="g-val" id="verdictVal" style="font-size:.9rem">ощутимо</div><div class="g-sub" id="verdictSub">для ушей</div></div>
+        </div>
+        <div class="status" id="status">Авто-демо на этом слайде.</div>
+        <div class="voice-panel"><div class="vp-h">Сейчас говорит учитель</div><div class="vp-text" id="voiceText">…</div><div class="vp-meta" id="voiceMeta">beat: —</div></div>
+      </div>
+    </section>
+    <section class="slide" data-slide="3" data-voice="b-q1">
+      <div class="slide-inner center-block">
+        <div class="kicker">Вопрос 1</div><h2>Вдвое глубже</h2>
+        <p class="body-text">В воде на 5 м давление около 50 кПа (при g = 10).</p>
+        <div class="q-box"><div class="ql">Подумай</div><p>Если опуститься на 10 м в той же воде — давление больше или меньше? Во сколько раз?</p></div>
+      </div>
+    </section>
+    <section class="slide" data-slide="4" data-voice="b-formula">
+      <div class="slide-inner center-block">
+        <div class="kicker">Закон</div><h2>Формула давления столба</h2>
+        <div class="formula-big"><div class="eq">p = ρ · g · h</div><div class="plain">давление = плотность × g × глубина · для 7 класса g ≈ 10 Н/кг</div></div>
+        <div class="trio">
+          <div class="t"><b>h ↑</b><span>глубже — давит сильнее</span></div>
+          <div class="t"><b>ρ ↑</b><span>гуще жидкость — давит сильнее</span></div>
+          <div class="t"><b>во все стороны</b><span>не только «вниз»</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-slide="5" data-voice="b-q2">
+      <div class="slide-inner center-block">
+        <div class="kicker">Вопрос 2</div><h2>Та же глубина — другая жидкость</h2>
+        <div class="q-box"><div class="ql">Подумай</div><p>На 10 м в Мёртвом море давление больше, меньше или такое же, как в пресной воде?</p></div>
+        <div class="grid-2" style="margin-top:18px">
+          <div class="tile wrong"><div class="tag">Миф</div><h3>«Глубина одна — давление одно»</h3><p>Жидкость якобы не важна</p></div>
+          <div class="tile right"><div class="tag">Факт</div><h3>ρ входит в формулу</h3><p>Гуще жидкость → больше p при той же h</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-slide="6" data-voice="b-misconcept">
+      <div class="slide-inner center-block">
+        <div class="kicker">Ошибки</div><h2>Что часто путают</h2>
+        <div class="grid-3">
+          <div class="tile"><div class="emoji">⬇️</div><h3>«Давит только вниз»</h3><p>Давление в жидкости действует во все стороны.</p></div>
+          <div class="tile"><div class="emoji">🪣</div><h3>«Важен объём бассейна»</h3><p>Для p = ρgh важны плотность и глубина точки, не ширина озера.</p></div>
+          <div class="tile"><div class="emoji">⚖️</div><h3>«Тяжёлая капля давит сильнее»</h3><p>Смотри на столб жидкости над точкой, не на «тяжесть капли».</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-slide="7" data-voice="b-transfer">
+      <div class="slide-inner center-block">
+        <div class="kicker">В жизнь</div><h2>Где это рядом</h2>
+        <div class="grid-3">
+          <div class="tile"><div class="emoji">🏗️</div><h3>Плотина</h3><p>Внизу стенка толще — там давление больше.</p></div>
+          <div class="tile"><div class="emoji">🤿</div><h3>Водолаз</h3><p>С каждыми ~10 м в воде + примерно 1 атм.</p></div>
+          <div class="tile"><div class="emoji">🚰</div><h3>Водопровод</h3><p>Чем выше бак — тем сильнее напор внизу.</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-slide="8" data-voice="b-outro">
+      <div class="slide-inner center-block">
+        <div class="kicker">Итог</div><h2>Забери с собой</h2>
+        <div class="formula-big" style="padding:20px"><div class="eq" style="font-size:clamp(1.7rem,5vw,2.6rem)">p = ρ g h</div></div>
+        <div class="trio">
+          <div class="t"><b>глубже</b><span>h↑ → p↑</span></div>
+          <div class="t"><b>гуще</b><span>ρ↑ → p↑</span></div>
+          <div class="t"><b>везде</b><span>давит во все стороны</span></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <p class="body-text"><b>Попробуй сам:</b> вернись к симулятору, сними «Авто-демо» и найди глубину в воде, где p ≈ 100 кПа.</p>
+          <p class="body-text" style="margin-top:8px;color:var(--muted);font-size:.9rem">Подсказка: h = p / (ρg) ≈ 100000 / (1000·10) = 10 м.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <nav class="nav" aria-label="Навигация">
+    <button type="button" class="nav-btn ghost" id="btnPrev" disabled>← Назад</button>
+    <div class="nav-center">
+      <div class="dots" id="dots"></div>
+      <div class="slide-counter" id="counter">1 / 9</div>
+    </div>
+    <button type="button" class="nav-btn" id="btnNext">Далее →</button>
+  </nav>
+</div>
+<script>
+(() => {
+'use strict';
+
+  const slides = [...document.querySelectorAll('.slide')];
+  const total = slides.length;
+  let idx = 0, touchX0 = null;
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.type = 'button'; d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Слайд ' + (i + 1));
+    d.addEventListener('click', () => go(i));
+    dotsEl.appendChild(d);
+  });
+  const dots = [...dotsEl.children];
+  function go(n) {
+    n = Math.max(0, Math.min(total - 1, n));
+    idx = n;
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    btnPrev.disabled = idx === 0;
+    btnNext.disabled = idx === total - 1;
+    btnNext.textContent = idx === total - 1 ? 'Конец' : 'Далее →';
+    counter.textContent = (idx + 1) + ' / ' + total;
+    if (typeof onSlideEnter === 'function') onSlideEnter(idx);
+    try { history.replaceState(null, '', '#s' + (idx + 1)); } catch (_) {}
+  }
+  btnPrev.addEventListener('click', () => go(idx - 1));
+  btnNext.addEventListener('click', () => { if (idx < total - 1) go(idx + 1); });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea, select, button.chip, button.keybtn')) return;
+    if (['ArrowRight','PageDown',' '].includes(e.key) && !e.shiftKey) { e.preventDefault(); if (idx < total - 1) go(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+  });
+  const slidesRoot = document.getElementById('slides');
+  slidesRoot.addEventListener('touchstart', e => { touchX0 = e.changedTouches[0].clientX; }, {passive:true});
+  slidesRoot.addEventListener('touchend', e => {
+    if (touchX0 == null) return;
+    const dx = e.changedTouches[0].clientX - touchX0; touchX0 = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0 && idx < total - 1) go(idx + 1);
+    if (dx > 0) go(idx - 1);
+  }, {passive:true});
+  window.__goSlide = go;
+  window.__getSlide = () => idx;
+
+
+  const G = 10; // Н/кг, 7 класс
+  const LIQS = [
+    {name:'спирт', rho:800},
+    {name:'вода', rho:1000},
+    {name:'море', rho:1030},
+    {name:'Мёртвое море', rho:1240}
+  ];
+  const manifest = {
+    meta:{id:'davlenie-zhidkosti',title:'Давление в жидкости',grade:'7',format:'slides'},
+    autoDemo:{enabledByDefault:true,loop:true,pauseBetweenLoopsMs:1800,steps:[
+      {id:'shallow',durationMs:4500,state:{h:1,rho:1000},highlight:['h','p'],sayId:'b-shallow'},
+      {id:'deep',durationMs:5000,state:{h:10,rho:1000},highlight:['h','p'],sayId:'b-deep'},
+      {id:'dead',durationMs:5200,state:{h:10,rho:1240},highlight:['rho','p'],sayId:'b-dead'},
+      {id:'surface',durationMs:4500,state:{h:0.5,rho:1000},highlight:['h'],sayId:'b-surface'}
+    ]},
+    voiceScript:{beats:[
+      {id:'b-hook',phase:'hook',say:'Почему уши закладывает под водой? На поверхности почти не давит. На глубине — давит. Что изменилось?'},
+      {id:'b-setup',phase:'setup',say:'Смотри на столб жидкости. Ползунки — глубина и плотность. Давление считаем по формуле ро гэ аш.'},
+      {id:'b-shallow',phase:'demo',say:'Вода. Глубина один метр. Давление около десяти килопаскалей. Почти лёгкое.'},
+      {id:'b-q1',phase:'question',say:'Вопрос. Если опуститься на десять метров в той же воде — давление вырастет? Во сколько раз?'},
+      {id:'b-deep',phase:'answer',say:'В десять раз глубже — в десять раз больше давление. Около ста килопаскалей. Это уже ощутимо для ушей.'},
+      {id:'b-formula',phase:'formula',say:'Закон простой. Давление столба жидкости равно плотности, умноженной на гэ и на глубину. Пэ равно ро гэ аш.'},
+      {id:'b-q2',phase:'question',say:'А если на тех же десяти метрах оказаться в Мёртвом море? Давление больше, меньше или такое же?'},
+      {id:'b-dead',phase:'demo',say:'Плотность выше — давление выше. Та же глубина, но столб «тяжелее». Уши чувствуют сильнее.'},
+      {id:'b-surface',phase:'demo',say:'Вернёмся почти к поверхности — полметра. Давление снова маленькое. Глубина решает.'},
+      {id:'b-misconcept',phase:'explain',say:'Важно: давление в жидкости действует во все стороны, не только вниз. И ширина бассейна в формулу не входит.'},
+      {id:'b-transfer',phase:'transfer',say:'Поэтому плотину делают толще снизу. А водолаз с каждыми примерно десятью метрами получает ещё одну атмосферу.'},
+      {id:'b-outro',phase:'summary',say:'Итог. Пэ равно ро гэ аш. Глубже и гуще — давит сильнее. Сними Авто-демо и подбери глубину, где около ста килопаскалей.'}
+    ],fullNarration:''},
+    interaction:{questions:[
+      {id:'q1',ask:'h×2 → p?',idealAnswer:'больше в 2 раза'},
+      {id:'q2',ask:'Мёртвое море vs вода на 10 м',idealAnswer:'в Мёртвом больше'}
+    ]}
+  };
+  manifest.voiceScript.fullNarration = manifest.voiceScript.beats.map(b=>b.say).join(' ');
+
+  const state = {auto:true,h:5,rho:1000,labActive:false,stepIndex:0,tween:null,holdTimer:null,beatListeners:[],bubbles:[]};
+  const $ = id => document.getElementById(id);
+  const canvas = $('scene'); const ctx = canvas.getContext('2d');
+  const elH = $('h'), elRho = $('rho'), autoBox = $('autoDemo');
+
+  function nf(n,d=1){return Number(n).toFixed(d).replace('.',',')}
+  function liqName(rho){
+    let best=LIQS[0], bd=1e9;
+    for(const L of LIQS){const d=Math.abs(L.rho-rho); if(d<bd){bd=d;best=L}}
+    return best.name;
+  }
+  function physics(){ return {p: state.rho * G * state.h}; } // Па
+  function verdict(p){
+    const k=p/1000;
+    if(k<15) return {text:'слабо',sub:'почти не чувствуешь',tone:'good'};
+    if(k<80) return {text:'ощутимо',sub:'уши начинают чувствовать',tone:'neutral'};
+    if(k<150) return {text:'сильно',sub:'как ~1 атм и больше',tone:'warn'};
+    return {text:'очень сильно',sub:'глубоко!',tone:'warn'};
+  }
+  function updateReadouts(){
+    const {p}=physics(); const v=verdict(p);
+    $('hVal').textContent=nf(state.h,1)+' м';
+    $('rhoVal').textContent=Math.round(state.rho)+' кг/м³';
+    $('hShow').textContent=nf(state.h,1)+' м';
+    $('rhoShow').textContent=Math.round(state.rho)+' кг/м³';
+    $('liqName').textContent=liqName(state.rho);
+    $('pVal').textContent=nf(p/1000, p>=10000?0:1)+' кПа';
+    $('verdictVal').textContent=v.text;
+    $('verdictSub').textContent=v.sub;
+    $('g-verdict').className='gauge'+(v.tone==='warn'?' warn':v.tone==='good'?' good':'');
+    elH.value=state.h; elRho.value=state.rho;
+    [...$('liqChips').children].forEach(c=>c.classList.toggle('active', +c.dataset.rho===Math.round(state.rho) || Math.abs(+c.dataset.rho-state.rho)<15));
+    if(!state.auto && state.labActive){
+      $('status').textContent='p = '+Math.round(state.rho)+' · 10 · '+nf(state.h,1)+' = '+Math.round(p)+' Па ≈ '+nf(p/1000,1)+' кПа';
+      $('status').className='status'+(v.tone==='warn'?' warn':'');
+    }
+  }
+  // chips
+  LIQS.forEach(L=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=L.name;
+    b.dataset.rho=L.rho;
+    b.addEventListener('click',()=>{ if(state.auto) return; state.rho=L.rho; updateReadouts(); });
+    $('liqChips').appendChild(b);
+  });
+
+  function setManualLock(locked){
+    elH.disabled=locked; elRho.disabled=locked;
+    $('ctrl-h').classList.toggle('locked',locked);
+    $('ctrl-rho').classList.toggle('locked',locked);
+    [...$('liqChips').children].forEach(c=>c.disabled=locked);
+  }
+  function clearHighlights(){document.querySelectorAll('.ctrl.highlight,.gauge.highlight').forEach(e=>e.classList.remove('highlight'))}
+  function highlight(ids){
+    clearHighlights();
+    (ids||[]).forEach(id=>{
+      const el=document.querySelector('[data-control="'+id+'"]')||$('ctrl-'+id);
+      if(el) el.classList.add('highlight');
+    });
+  }
+  function beatById(id){return manifest.voiceScript.beats.find(b=>b.id===id)}
+  function showVoice(beat){
+    if(!beat) return;
+    $('voiceText').textContent=beat.say;
+    $('voiceMeta').textContent='beat: '+beat.id+' · '+(beat.phase||'');
+    state.beatListeners.forEach(fn=>{try{fn(beat)}catch(_){}});
+  }
+  function setAuto(on){
+    state.auto=on; autoBox.checked=on;
+    $('autoBadge').textContent=on?'AUTO':'MANUAL';
+    $('autoBadge').className='auto-badge '+(on?'on':'off');
+    $('autoHint').textContent=on?'Само меняет глубину и жидкость. Сними галочку — крути сам.':'Ручной режим: крути h и ρ.';
+    setManualLock(on);
+    if(state.holdTimer){clearTimeout(state.holdTimer);state.holdTimer=null}
+    if(on && state.labActive){state.stepIndex=0; startStep(0)}
+    else {state.tween=null; clearHighlights(); if(state.labActive){$('status').textContent='Ручной режим.'; $('status').className='status'} updateReadouts()}
+  }
+  function startStep(i){
+    const steps=manifest.autoDemo.steps;
+    if(!steps.length||!state.auto||!state.labActive) return;
+    const step=steps[i%steps.length]; state.stepIndex=i%steps.length;
+    const beat=beatById(step.sayId)||{id:step.sayId,say:'Смотри на приборы.',phase:'demo'};
+    showVoice(beat); highlight(step.highlight);
+    const from={h:state.h,rho:state.rho};
+    const to={h:step.state.h??state.h, rho:step.state.rho??state.rho};
+    state.tween={from,to,t0:performance.now(),dur:step.durationMs||4500};
+    $('status').textContent='Авто-демо: '+beat.say; $('status').className='status';
+  }
+  function advanceAuto(){
+    if(!state.auto||!state.labActive) return;
+    const next=state.stepIndex+1;
+    if(next>=manifest.autoDemo.steps.length){
+      showVoice({id:'loop',phase:'summary',say:'Ещё раз… Или сними Авто-демо и попробуй сам. Можно листать дальше.'});
+      state.holdTimer=setTimeout(()=>{if(state.auto&&state.labActive) startStep(0)},1800);
+    } else startStep(next);
+  }
+  autoBox.addEventListener('change',()=>setAuto(autoBox.checked));
+  elH.addEventListener('input',()=>{if(!state.auto){state.h=+elH.value; updateReadouts()}});
+  elRho.addEventListener('input',()=>{if(!state.auto){state.rho=+elRho.value; updateReadouts()}});
+
+  function resize(){
+    const dpr=Math.min(devicePixelRatio||1,2);
+    const w=canvas.clientWidth||900, h=canvas.clientHeight||280;
+    canvas.width=w*dpr; canvas.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    state.W=w; state.H=h;
+  }
+  function draw(){
+    const W=state.W||900, H=state.H||280;
+    const {p}=physics();
+    ctx.clearRect(0,0,W,H);
+    // tank
+    const pad=30, tw=W*0.42, th=H-pad*2, tx=pad, ty=pad;
+    const maxH=20, fill=Math.min(1, state.h/maxH);
+    const waterTop=ty+th*(1-fill*0.92);
+    // glass
+    ctx.fillStyle='#0d1428'; ctx.strokeStyle='#3a4a72'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.rect(tx,ty,tw,th); ctx.fill(); ctx.stroke();
+    // water color by rho
+    const t=(state.rho-800)/440;
+    const r=Math.round(40+t*30), g=Math.round(120-t*40), b=Math.round(200-t*40);
+    ctx.fillStyle=`rgba(${r},${g},${b},0.75)`;
+    ctx.fillRect(tx+2, waterTop, tw-4, ty+th-waterTop-2);
+    // depth marker
+    const diverY=waterTop + (ty+th-waterTop)*0.55;
+    ctx.fillStyle='#ffd76a';
+    ctx.beginPath(); ctx.arc(tx+tw*0.5, diverY, 10, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='#c5d4f5'; ctx.font='600 12px system-ui';
+    ctx.fillText('точка', tx+tw*0.5-16, diverY+24);
+    // arrows pressure (all directions)
+    const cx=tx+tw*0.5, cy=diverY;
+    const k=6+Math.min(22, p/8000);
+    ctx.strokeStyle='#7ef0ff'; ctx.lineWidth=2;
+    [[0,-1],[0,1],[1,0],[-1,0],[.7,.7],[-.7,.7]].forEach(([dx,dy])=>{
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+dx*k, cy+dy*k); ctx.stroke();
+    });
+    // scale right
+    const sx=tx+tw+40;
+    ctx.fillStyle='#9db0d4'; ctx.font='700 13px system-ui';
+    ctx.fillText('h = '+nf(state.h,1)+' м', sx, ty+20);
+    ctx.fillText('ρ = '+Math.round(state.rho), sx, ty+42);
+    ctx.fillText(liqName(state.rho), sx, ty+64);
+    ctx.fillStyle='#7ef0ff'; ctx.font='800 22px system-ui';
+    ctx.fillText(nf(p/1000,1)+' кПа', sx, ty+110);
+    ctx.fillStyle='#9db0d4'; ctx.font='600 12px system-ui';
+    ctx.fillText('p = ρ · g · h', sx, ty+132);
+    ctx.fillText('g = 10 Н/кг', sx, ty+150);
+    // big bar
+    const barH=th*0.7, barY=ty+th*0.15;
+    ctx.fillStyle='rgba(255,255,255,.08)';
+    ctx.fillRect(sx, barY, 18, barH);
+    const bh=Math.min(barH, (p/250000)*barH);
+    const grd=ctx.createLinearGradient(0,barY+barH,0,barY+barH-bh);
+    grd.addColorStop(0,'#3ce7ff'); grd.addColorStop(1,'#7359ff');
+    ctx.fillStyle=grd;
+    ctx.fillRect(sx, barY+barH-bh, 18, bh);
+  }
+
+  function onSlideEnter(i){
+    const voiceId=slides[i].getAttribute('data-voice');
+    const beat=beatById(voiceId); if(beat) showVoice(beat);
+    if(i===2){
+      state.labActive=true; resize();
+      if(state.auto){
+        if(state.holdTimer) clearTimeout(state.holdTimer);
+        state.holdTimer=setTimeout(()=>{if(state.labActive&&state.auto) startStep(0)},800);
+      }
+      updateReadouts();
+    } else {
+      state.labActive=false; state.tween=null;
+      if(state.holdTimer){clearTimeout(state.holdTimer);state.holdTimer=null}
+    }
+  }
+  window.onSlideEnter=onSlideEnter;
+
+  let last=performance.now();
+  function frame(now){
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    if(state.auto&&state.labActive&&state.tween){
+      const {from,to,t0,dur}=state.tween;
+      const u=Math.min(1,(now-t0)/dur); const e=u*u*(3-2*u);
+      state.h=from.h+(to.h-from.h)*e;
+      state.rho=from.rho+(to.rho-from.rho)*e;
+      updateReadouts();
+      if(u>=1){ state.h=to.h; state.rho=to.rho; state.tween=null; updateReadouts();
+        state.holdTimer=setTimeout(advanceAuto,350); }
+    }
+    if(state.labActive||idx===2) draw();
+    requestAnimationFrame(frame);
+  }
+  window.__LAB={
+    manifest, getState:()=>({...physics(),h:state.h,rho:state.rho,auto:state.auto,slide:idx}),
+    setAuto, isAuto:()=>state.auto, getSlide:()=>idx, goToSlide:n=>go(n),
+    getVoiceBeats:()=>manifest.voiceScript.beats,
+    getNarrationText:()=>manifest.voiceScript.fullNarration,
+    getQuestions:()=>manifest.interaction.questions,
+    onBeat:cb=>{state.beatListeners.push(cb); return ()=>{state.beatListeners=state.beatListeners.filter(x=>x!==cb)}},
+    exportForTTS:()=>({meta:manifest.meta,beats:manifest.voiceScript.beats,fullNarration:manifest.voiceScript.fullNarration,questions:manifest.interaction.questions,autoDemo:manifest.autoDemo})
+  };
+  window.addEventListener('resize',()=>{if(idx===2) resize()});
+  resize(); updateReadouts(); setManualLock(true);
+  requestAnimationFrame(frame);
+
+  const m = location.hash.match(/s(\d+)/i);
+  const start = m ? Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1)) : 0;
+  go(start);
+})();
+</script>
+</body>
+</html>

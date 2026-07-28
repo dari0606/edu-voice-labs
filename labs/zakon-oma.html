@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Закон Ома — слайды</title>
+<style>
+  :root{
+    --bg:#f6f5fb; --card:#fff; --ink:#232135; --muted:#6f6b80;
+    --line:#e4e1f0; --accent:#7359ff; --accent-deep:#5640d6;
+    --good:#5f8f5a; --warn:#c04f43; --blue:#4f7396;
+    --radius:18px;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(50,40,120,.1);
+    --nav-h:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(83,63,190,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(83,63,190,.045) 1px, transparent 1px);
+    background-size:28px 28px;
+  }
+
+  /* ── deck ── */
+  .deck{
+    position:relative;z-index:1;
+    height:100%;height:100dvh;
+    display:flex;flex-direction:column;
+  }
+  .slides{
+    flex:1;position:relative;overflow:hidden;
+    touch-action:pan-y;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px 28px 16px;
+    width:100%;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transform:translateX(28px);
+    transition:opacity .32s ease, transform .32s ease, visibility .32s;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .slide.active{
+    opacity:1;visibility:visible;pointer-events:auto;
+    transform:translateX(0);
+  }
+  .slide.exit-left{transform:translateX(-28px);opacity:0}
+  .slide-inner{
+    width:100%;
+    max-width:820px;
+    margin:auto;
+    display:flex;flex-direction:column;
+    align-items:center;
+    text-align:center;
+    min-height:0;
+  }
+
+  .badge{
+    display:inline-flex;align-self:center;
+    padding:5px 12px;border-radius:999px;background:#fff;
+    border:1px solid var(--line);font-size:.72rem;font-weight:700;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--accent-deep);
+    box-shadow:var(--shadow);margin-bottom:12px;
+  }
+  .kicker{
+    font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:6px;
+  }
+  h1{
+    font-size:clamp(2rem,5.5vw,3.1rem);letter-spacing:-.03em;line-height:1.1;
+    margin-bottom:10px;
+  }
+  h2{
+    font-size:clamp(1.45rem,3.5vw,2rem);letter-spacing:-.02em;line-height:1.15;
+    margin-bottom:12px;
+  }
+  .lead{
+    font-size:clamp(1.05rem,2.4vw,1.25rem);color:var(--muted);
+    max-width:32em;line-height:1.45;margin-left:auto;margin-right:auto;
+  }
+  .body-text{
+    font-size:clamp(1rem,2vw,1.12rem);line-height:1.55;
+    max-width:36em;margin-left:auto;margin-right:auto;
+  }
+  .body-text + .body-text{margin-top:10px}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px;
+    width:100%;max-width:640px;margin-left:auto;margin-right:auto;text-align:left;
+  }
+
+  /* title slide */
+  .slide-title .slide-inner{justify-content:center}
+  .title-glow{
+    width:min(100%,280px);height:8px;border-radius:99px;margin:18px auto 8px;
+    background:linear-gradient(90deg,#7359ff,#c39cff,#ff8fd0);
+  }
+  .hint-keys{
+    margin-top:28px;font-size:.88rem;color:var(--muted);
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
+  }
+  .kbd{
+    display:inline-block;padding:3px 9px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;font-weight:700;font-size:.8rem;
+    color:var(--ink);box-shadow:0 1px 0 rgba(0,0,0,.04);
+  }
+
+  /* cards grid */
+  .grid-2,.grid-3{
+    display:grid;gap:14px;margin-top:16px;width:100%;
+    text-align:left;
+  }
+  .grid-2{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:720px){
+    .grid-2,.grid-3{grid-template-columns:1fr}
+    .slide{padding:16px 14px 10px}
+  }
+  .tile{
+    background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:16px;box-shadow:var(--shadow);text-align:left;
+  }
+  .tile h3{font-size:1rem;margin-bottom:6px}
+  .tile p{font-size:.9rem;color:var(--muted);line-height:1.45}
+  .tile .emoji{font-size:1.5rem;margin-bottom:8px}
+  .tile.wrong{border-color:#f0c4be;background:#fff8f7}
+  .tile.right{border-color:#c5dfc2;background:#f6fbf5}
+  .tile .tag{
+    display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .tile.wrong .tag{color:var(--warn)}
+  .tile.right .tag{color:var(--good)}
+
+  .formula-big{
+    margin:20px auto;padding:28px 20px;text-align:center;border-radius:20px;
+    background:linear-gradient(160deg,#f0ecff,#fff);
+    border:1px solid #dcd4ff;box-shadow:var(--shadow);
+    width:100%;max-width:560px;
+  }
+  .formula-big .eq{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(2.2rem,7vw,3.6rem);font-weight:700;letter-spacing:.02em;
+    color:var(--accent-deep);
+  }
+  .formula-big .plain{
+    margin-top:12px;font-size:clamp(.95rem,2vw,1.1rem);color:var(--muted);
+  }
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px;width:100%}
+  @media (max-width:720px){.trio{grid-template-columns:1fr}}
+  .trio .t{
+    text-align:center;padding:16px 12px;border-radius:16px;
+    background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);
+  }
+  .trio .t b{display:block;font-size:1.5rem;color:var(--accent-deep);margin-bottom:4px}
+  .trio .t span{font-size:.88rem;color:var(--muted)}
+
+  /* lab slide — compact, wider, still centered */
+  .slide-lab .slide-inner,
+  #slide-lab .slide-inner,
+  .lab-layout{
+    max-width:920px;
+    text-align:left;
+    align-items:stretch;
+  }
+  .lab-layout{display:flex;flex-direction:column;gap:10px;width:100%;min-height:0}
+  .lab-layout > div:first-child{text-align:center}
+  .sim-toolbar{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-radius:14px;background:#f4f2fd;border:1px solid var(--line);
+  }
+  .auto-toggle{
+    display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+    font-weight:700;font-size:.9rem;
+  }
+  .auto-toggle input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+  .auto-hint{font-size:.78rem;color:var(--muted);font-weight:500;flex:1 1 140px}
+  .auto-badge{
+    display:inline-flex;padding:3px 9px;border-radius:999px;
+    font-size:.7rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  }
+  .auto-badge.on{background:#e8e2ff;color:var(--accent-deep)}
+  .auto-badge.off{background:#eceef3;color:var(--muted)}
+  .stage{
+    position:relative;border-radius:14px;flex:0 0 auto;
+    background:linear-gradient(165deg,#1a1f35 0%,#12162a 55%,#0e1220 100%);
+    border:1px solid #2a3355;overflow:hidden;
+  }
+  #scene{display:block;width:100%;height:min(38vh,280px)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px}
+  .ctrl{flex:1 1 160px;min-width:140px}
+  .ctrl label{
+    display:flex;justify-content:space-between;gap:6px;font-size:.75rem;font-weight:700;
+    color:var(--muted);margin-bottom:4px;
+  }
+  .ctrl label b{color:var(--accent-deep)}
+  .ctrl.locked{opacity:.55;pointer-events:none}
+  .ctrl.highlight{
+    outline:2px solid var(--accent);outline-offset:3px;border-radius:10px;padding:4px;
+    background:rgba(115,89,255,.06);
+  }
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:7px;border-radius:999px;
+    background:linear-gradient(90deg,#74b3f0,#7359ff,#ff8fd0);outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;
+    border:3px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:grab;
+  }
+  .keybtn{
+    width:100%;display:flex;align-items:center;gap:10px;cursor:pointer;
+    padding:10px 12px;border-radius:12px;border:2px solid var(--line);
+    background:#fff;font:inherit;font-weight:700;font-size:.85rem;color:var(--ink);
+  }
+  .keybtn.on{border-color:var(--accent);background:#f0ecff;color:var(--accent-deep)}
+  .keybtn .pill{
+    width:40px;height:22px;border-radius:99px;position:relative;flex:0 0 auto;
+    background:#d8d6e6;transition:.25s;
+  }
+  .keybtn .pill i{
+    position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+    background:#8a86a3;transition:.25s cubic-bezier(.4,1.6,.5,1);
+  }
+  .keybtn.on .pill{background:rgba(115,89,255,.35)}
+  .keybtn.on .pill i{left:20px;background:var(--accent)}
+  .keybtn .st{margin-left:auto;font-size:.72rem;color:var(--muted)}
+  .gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media (max-width:640px){.gauges{grid-template-columns:repeat(2,1fr)}}
+  .gauge{
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center;
+  }
+  .gauge .g-label{font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .gauge .g-val{font-size:1.15rem;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+  .gauge .g-sub{font-size:.68rem;color:var(--muted);font-weight:600}
+  .gauge.accent .g-val{color:var(--accent-deep)}
+  .gauge.good .g-val{color:var(--good)}
+  .gauge.warn .g-val{color:var(--warn)}
+  .gauge.highlight{outline:2px solid var(--accent)}
+  .bar{height:5px;border-radius:99px;background:#eceaf5;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#ffb43a,#ffd76a)}
+  .status{
+    padding:10px 12px;border-radius:0 12px 12px 0;border-left:4px solid var(--accent);
+    background:#f4f2fd;font-size:.88rem;min-height:44px;
+  }
+  .status.good{background:#eef5ec;border-left-color:var(--good)}
+  .status.warn{background:#f9ecea;border-left-color:var(--warn)}
+  .voice-panel{
+    padding:10px 12px;border-radius:12px;background:#1a1830;color:#e8e4ff;font-size:.84rem;
+  }
+  .voice-panel .vp-h{font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a89cff;margin-bottom:4px}
+  .voice-panel .vp-text{line-height:1.4;color:#f2efff}
+  .voice-panel .vp-meta{margin-top:4px;font-size:.7rem;color:#9b94c4}
+
+  .q-box{
+    margin:16px auto 0;padding:18px 20px;border-radius:16px;
+    background:linear-gradient(135deg,#f0ecff,#fff);border:1px solid #dcd4ff;
+    width:100%;max-width:560px;text-align:center;
+  }
+  .q-box .ql{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .q-box p{font-size:clamp(1.1rem,2.5vw,1.35rem);font-weight:600;line-height:1.35}
+
+  .center-block{
+    margin:auto;
+    width:100%;
+    justify-content:center;
+  }
+
+  /* ── nav bar ── */
+  .nav{
+    flex:0 0 var(--nav-h);z-index:5;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 20px 14px;background:rgba(246,245,251,.92);
+    border-top:1px solid var(--line);backdrop-filter:blur(10px);
+  }
+  .nav-btn{
+    border:none;cursor:pointer;font:inherit;font-weight:700;
+    padding:12px 18px;border-radius:999px;min-width:110px;
+    background:var(--accent);color:#fff;
+    box-shadow:0 2px 10px rgba(115,89,255,.3);
+    transition:transform .08s, background .15s, opacity .15s;
+  }
+  .nav-btn:hover{background:var(--accent-deep)}
+  .nav-btn:active{transform:scale(.97)}
+  .nav-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+  .nav-btn.ghost{
+    background:#fff;color:var(--accent-deep);border:2px solid var(--accent);box-shadow:none;
+  }
+  .nav-center{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+  .dots{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .dot{
+    width:9px;height:9px;border-radius:50%;border:none;padding:0;
+    background:#d0cce0;cursor:pointer;transition:transform .15s, background .15s;
+  }
+  .dot:hover{transform:scale(1.2)}
+  .dot.active{background:var(--accent);transform:scale(1.25)}
+  .slide-counter{font-size:.78rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+  <div class="slides" id="slides">
+
+    <!-- 0 TITLE -->
+    <section class="slide slide-title active" data-slide="0" data-voice="b-hook">
+      <div class="slide-inner">
+        <span class="badge">Физика · 8 класс · слайды</span>
+        <h1>Закон Ома</h1>
+        <div class="title-glow"></div>
+        <p class="lead">Как напряжение и сопротивление решают, какой будет ток. С интерактивом, авто-демо и вопросами.</p>
+        <div class="hint-keys">
+          <span>Листать:</span>
+          <span class="kbd">←</span><span class="kbd">→</span>
+          <span class="kbd">пробел</span>
+          <span>или кнопки внизу · свайп на телефоне</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1 HOOK -->
+    <section class="slide" data-slide="1" data-voice="b-hook">
+      <div class="slide-inner center-block">
+        <div class="kicker">Загадка</div>
+        <h2>Почему лампа то еле светит, то слепит?</h2>
+        <p class="body-text">Провода те же. Меняется только <b>напряжение</b> и <b>сопротивление</b> — и яркость совсем другая.</p>
+        <p class="body-text" style="margin-top:12px;color:var(--muted)">Кто здесь командует током?</p>
+        <div class="grid-2" style="margin-top:22px">
+          <div class="tile">
+            <div class="emoji">🌑</div>
+            <h3>Тускло</h3>
+            <p>Маленькое U или большое R → слабый ток</p>
+          </div>
+          <div class="tile">
+            <div class="emoji">💡</div>
+            <h3>Ярко</h3>
+            <p>Большое U и малое R → сильный ток</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 LAB -->
+    <section class="slide" data-slide="2" data-voice="b-setup" id="slide-lab">
+      <div class="slide-inner lab-layout">
+        <div>
+          <div class="kicker">Симулятор</div>
+          <h2 style="margin-bottom:8px;font-size:clamp(1.2rem,3vw,1.6rem)">Цепь на столе</h2>
+        </div>
+
+        <div class="sim-toolbar">
+          <label class="auto-toggle" for="autoDemo">
+            <input type="checkbox" id="autoDemo" checked>
+            <span>Авто-демо</span>
+          </label>
+          <span class="auto-hint" id="autoHint">Само крутит опыты. Сними галочку — крути сам.</span>
+          <span class="auto-badge on" id="autoBadge">AUTO</span>
+        </div>
+
+        <div class="stage">
+          <canvas id="scene" width="900" height="280" aria-label="Электрическая цепь"></canvas>
+        </div>
+
+        <div class="controls">
+          <div class="ctrl" id="ctrl-U" data-control="U">
+            <label><span>Напряжение U</span><b id="UVal">6,0 В</b></label>
+            <input type="range" id="U" min="1.5" max="12" step="0.5" value="6">
+          </div>
+          <div class="ctrl" id="ctrl-R" data-control="R">
+            <label><span>Сопротивление R</span><b id="RVal">6,0 Ом</b></label>
+            <input type="range" id="R" min="2" max="20" step="0.5" value="6">
+          </div>
+          <div class="ctrl" id="ctrl-closed" data-control="closed">
+            <label><span>Ключ</span><b id="keyLab">замкнут</b></label>
+            <button type="button" class="keybtn on" id="keyBtn" aria-pressed="true">
+              <span class="pill"><i></i></span>
+              <span>Цепь</span>
+              <span class="st" id="keySt">замкнута</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="gauges">
+          <div class="gauge accent" id="g-I" data-control="I">
+            <div class="g-label">Сила тока I</div>
+            <div class="g-val" id="IVal">1,00 А</div>
+            <div class="g-sub">амперметр</div>
+          </div>
+          <div class="gauge" id="g-Ushow">
+            <div class="g-label">Напряжение U</div>
+            <div class="g-val" id="UShow">6,0 В</div>
+            <div class="g-sub">источник</div>
+          </div>
+          <div class="gauge good" id="g-P" data-control="P">
+            <div class="g-label">Мощность P</div>
+            <div class="g-val" id="PVal">6,00 Вт</div>
+            <div class="bar"><i id="PBar"></i></div>
+          </div>
+          <div class="gauge" id="g-verdict" data-control="verdict">
+            <div class="g-label">Состояние</div>
+            <div class="g-val" id="verdictVal" style="font-size:.9rem">Рабочий режим</div>
+            <div class="g-sub" id="verdictSub">I = U / R</div>
+          </div>
+        </div>
+
+        <div class="status" id="status">Авто-демо запустится на этом слайде.</div>
+        <div class="voice-panel" aria-live="polite">
+          <div class="vp-h">Сейчас говорит учитель</div>
+          <div class="vp-text" id="voiceText">…</div>
+          <div class="vp-meta" id="voiceMeta">beat: —</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 QUESTION 1 -->
+    <section class="slide" data-slide="3" data-voice="b-q1">
+      <div class="slide-inner center-block">
+        <div class="kicker">Вопрос 1</div>
+        <h2>Удвоим напряжение</h2>
+        <p class="body-text">Было: <b>U = 6 В</b>, <b>R = 6 Ом</b> → ток <b>1 А</b>.</p>
+        <div class="q-box">
+          <div class="ql">Подумай</div>
+          <p>Если U станет 12 В, а R не тронем — ток станет больше или меньше? Во сколько раз?</p>
+        </div>
+        <p class="lead" style="margin-top:20px;font-size:1rem">Ответ — на следующем слайде. Можешь вернуться в симулятор и проверить.</p>
+      </div>
+    </section>
+
+    <!-- 4 FORMULA -->
+    <section class="slide" data-slide="4" data-voice="b-formula">
+      <div class="slide-inner center-block">
+        <div class="kicker">Закон</div>
+        <h2>Три буквы — одна связь</h2>
+        <div class="formula-big">
+          <div class="eq">I = U / R</div>
+          <div class="plain">сила тока = напряжение ÷ сопротивление &nbsp;·&nbsp; [А] = [В] / [Ом]</div>
+        </div>
+        <div class="trio">
+          <div class="t"><b>U ↑</b><span>при том же R ток растёт</span></div>
+          <div class="t"><b>R ↑</b><span>при том же U ток падает</span></div>
+          <div class="t"><b>ключ</b><span>разомкнут → I = 0</span></div>
+        </div>
+        <p class="body-text muted" style="margin-top:16px;color:var(--muted);font-size:.92rem">
+          Проверка: 12 / 6 = 2 А · 12 / 12 = 1 А · 12 / 4 = 3 А
+        </p>
+      </div>
+    </section>
+
+    <!-- 5 QUESTION 2 -->
+    <section class="slide" data-slide="5" data-voice="b-q2">
+      <div class="slide-inner center-block">
+        <div class="kicker">Вопрос 2</div>
+        <h2>Куда девается ток?</h2>
+        <div class="q-box">
+          <div class="ql">Подумай</div>
+          <p>Ток «заканчивается» в лампе — или он один и тот же по всей последовательной цепи?</p>
+        </div>
+        <div class="grid-2" style="margin-top:18px">
+          <div class="tile wrong">
+            <div class="tag">Миф</div>
+            <h3>Лампа съедает ток</h3>
+            <p>Дальше по проводу «меньше ампер»</p>
+          </div>
+          <div class="tile right">
+            <div class="tag">Факт</div>
+            <h3>Ток один на всех</h3>
+            <p>Лампа берёт <b>энергию</b>, а не «кусок ампер»</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 MISCONCEPTIONS -->
+    <section class="slide" data-slide="6" data-voice="b-misconcept">
+      <div class="slide-inner center-block">
+        <div class="kicker">Ошибки</div>
+        <h2>Что часто путают</h2>
+        <div class="grid-3">
+          <div class="tile">
+            <div class="emoji">🔋</div>
+            <h3>«U и I — одно и то же»</h3>
+            <p>U — давление источника. I — поток заряда. Связаны через R.</p>
+          </div>
+          <div class="tile">
+            <div class="emoji">🧱</div>
+            <h3>«Больше R — сильнее ток»</h3>
+            <p>Наоборот: сопротивление мешает. R↑ → I↓ при том же U.</p>
+          </div>
+          <div class="tile">
+            <div class="emoji">💡</div>
+            <h3>«Лампа съедает ток»</h3>
+            <p>В последовательной цепи I одинаков. Меняется энергия.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 REAL WORLD -->
+    <section class="slide" data-slide="7" data-voice="b-transfer">
+      <div class="slide-inner center-block">
+        <div class="kicker">В жизнь</div>
+        <h2>Где это рядом с тобой</h2>
+        <div class="grid-3">
+          <div class="tile">
+            <div class="emoji">🎛️</div>
+            <h3>Диммер / реостат</h3>
+            <p>Крутишь R — меняется ток и яркость лампы.</p>
+          </div>
+          <div class="tile">
+            <div class="emoji">🧯</div>
+            <h3>Предохранитель</h3>
+            <p>Ток слишком большой — рвёт цепь, как разомкнутый ключ.</p>
+          </div>
+          <div class="tile">
+            <div class="emoji">📱</div>
+            <h3>Зарядка</h3>
+            <p>Источник задаёт U; ток зависит от того, сколько «берёт» устройство.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 SUMMARY -->
+    <section class="slide" data-slide="8" data-voice="b-outro">
+      <div class="slide-inner center-block">
+        <div class="kicker">Итог</div>
+        <h2>Забери с собой</h2>
+        <div class="formula-big" style="padding:20px">
+          <div class="eq" style="font-size:clamp(1.8rem,5vw,2.8rem)">I = U / R</div>
+        </div>
+        <div class="trio">
+          <div class="t"><b>U ↑ → I ↑</b><span>больше давление — сильнее поток</span></div>
+          <div class="t"><b>R ↑ → I ↓</b><span>больше препятствие — слабее поток</span></div>
+          <div class="t"><b>ключ off</b><span>цепь разорвана → I = 0</span></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <p class="body-text"><b>Попробуй сам:</b> вернись на слайд «Цепь на столе», сними «Авто-демо» и поставь, например, U = 9 В так, чтобы I ≈ 1,5 А.</p>
+          <p class="body-text muted" style="margin-top:8px;color:var(--muted);font-size:.9rem">Подсказка: I = U / R → R = U / I = 9 / 1,5 = 6 Ом.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <nav class="nav" aria-label="Навигация по слайдам">
+    <button type="button" class="nav-btn ghost" id="btnPrev" disabled>← Назад</button>
+    <div class="nav-center">
+      <div class="dots" id="dots" role="tablist" aria-label="Слайды"></div>
+      <div class="slide-counter" id="counter">1 / 9</div>
+    </div>
+    <button type="button" class="nav-btn" id="btnNext">Далее →</button>
+  </nav>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // SLIDE NAVIGATION
+  // ═══════════════════════════════════════════════════
+  const slides = [...document.querySelectorAll('.slide')];
+  const total = slides.length;
+  let idx = 0;
+  let touchX0 = null;
+
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Слайд ' + (i + 1));
+    d.addEventListener('click', () => go(i));
+    dotsEl.appendChild(d);
+  });
+  const dots = [...dotsEl.children];
+
+  function go(n, dir) {
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === idx && slides[n].classList.contains('active')) {
+      updateNav();
+      return;
+    }
+    const prev = idx;
+    idx = n;
+    slides.forEach((s, i) => {
+      s.classList.remove('active', 'exit-left');
+      if (i === idx) s.classList.add('active');
+      else if (i === prev && dir === -1) s.classList.add('exit-left');
+    });
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    updateNav();
+    onSlideEnter(idx);
+    try { history.replaceState(null, '', '#s' + (idx + 1)); } catch (_) {}
+  }
+
+  function updateNav() {
+    btnPrev.disabled = idx === 0;
+    btnNext.disabled = idx === total - 1;
+    btnNext.textContent = idx === total - 1 ? 'Конец' : 'Далее →';
+    counter.textContent = (idx + 1) + ' / ' + total;
+  }
+
+  btnPrev.addEventListener('click', () => go(idx - 1, -1));
+  btnNext.addEventListener('click', () => { if (idx < total - 1) go(idx + 1, 1); });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea, select')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) {
+      e.preventDefault();
+      if (idx < total - 1) go(idx + 1, 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) {
+      e.preventDefault();
+      go(idx - 1, -1);
+    } else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+  });
+
+  const slidesRoot = document.getElementById('slides');
+  slidesRoot.addEventListener('touchstart', (e) => {
+    touchX0 = e.changedTouches[0].clientX;
+  }, { passive: true });
+  slidesRoot.addEventListener('touchend', (e) => {
+    if (touchX0 == null) return;
+    const dx = e.changedTouches[0].clientX - touchX0;
+    touchX0 = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0 && idx < total - 1) go(idx + 1, 1);
+    if (dx > 0) go(idx - 1, -1);
+  }, { passive: true });
+
+  // ═══════════════════════════════════════════════════
+  // MANIFEST + SIMULATOR (from previous lab)
+  // ═══════════════════════════════════════════════════
+  const manifest = {
+    meta: { id: 'zakon-oma', title: 'Закон Ома', grade: '8', durationSec: 200, format: 'slides' },
+    autoDemo: {
+      enabledByDefault: true,
+      loop: true,
+      pauseBetweenLoopsMs: 2000,
+      steps: [
+        { id: 'base', durationMs: 5000, state: { U: 6, R: 6, closed: true }, highlight: ['U', 'R', 'I'], sayId: 'b-base' },
+        { id: 'double-U', durationMs: 5200, state: { U: 12, R: 6, closed: true }, highlight: ['U', 'I'], sayId: 'b-double-u' },
+        { id: 'double-R', durationMs: 5200, state: { U: 12, R: 12, closed: true }, highlight: ['R', 'I'], sayId: 'b-double-r' },
+        { id: 'open-key', durationMs: 4800, state: { U: 12, R: 12, closed: false }, highlight: ['closed', 'I'], sayId: 'b-open' },
+        { id: 'bright', durationMs: 5500, state: { U: 12, R: 4, closed: true }, highlight: ['P', 'I'], sayId: 'b-bright' }
+      ]
+    },
+    voiceScript: {
+      persona: { name: 'Учитель', role: 'учитель физики', addressAs: 'ты' },
+      style: { pauseAfterQuestionMs: 2400 },
+      beats: [
+        { id: 'b-hook', phase: 'hook', say: 'Смотри на лампу. Иногда она едва тлеет, а иногда слепит. Провода те же. Меняется только напряжение и сопротивление. Кто командует током?' },
+        { id: 'b-setup', phase: 'setup', say: 'На столе учебная цепь: источник, ключ, резистор и лампа. Ток пойдёт, только если ключ замкнут.' },
+        { id: 'b-base', phase: 'demo', say: 'Старт. Шесть вольт. Шесть ом. Сила тока — один ампер. Лампа горит ровно, по-рабочему.' },
+        { id: 'b-q1', phase: 'question', say: 'Вопрос. Если напряжение удвоим до двенадцати вольт, а сопротивление не тронем — ток станет больше или меньше? Во сколько раз?' },
+        { id: 'b-double-u', phase: 'answer', say: 'Удвоили напряжение — ток тоже удвоился. Было один ампер, стало два.' },
+        { id: 'b-double-r', phase: 'demo', say: 'А теперь сопротивление тоже удвоим — двенадцать ом. Ток падает обратно до одного ампера.' },
+        { id: 'b-formula', phase: 'formula', say: 'Вот закон Ома. Сила тока равна напряжению, делённому на сопротивление. И равно У на эр.' },
+        { id: 'b-open', phase: 'demo', say: 'Размыкаем ключ. Цепь разорвана. Ток ноль. Лампа гаснет.' },
+        { id: 'b-q2', phase: 'question', say: 'Ток «заканчивается» в лампе, или он один и тот же по всей последовательной цепи?' },
+        { id: 'b-misconcept', phase: 'explain', say: 'Ток не съедается. В такой цепи он один на всех участках. Лампа берёт энергию, а не кусок ампер.' },
+        { id: 'b-bright', phase: 'transfer', say: 'Замыкаем снова. Двенадцать вольт, четыре ома. Ток три ампера — лампа яркая.' },
+        { id: 'b-transfer', phase: 'transfer', say: 'В жизни так устроены диммер и реостат. А предохранитель рвёт цепь, если ток слишком большой.' },
+        { id: 'b-outro', phase: 'summary', say: 'Итог. И равно У на эр. Больше напряжение — больше ток. Больше сопротивление — меньше ток. Вернись к симулятору, сними Авто-демо и подергай ползунки сам.' }
+      ],
+      fullNarration: ''
+    },
+    interaction: {
+      questions: [
+        { id: 'q1', ask: 'U удвоили — ток?', idealAnswer: 'Больше в 2 раза', beatId: 'b-q1' },
+        { id: 'q2', ask: 'Ток съедается лампой?', idealAnswer: 'Нет, одинаков', beatId: 'b-q2' }
+      ]
+    },
+    slides: [
+      { i: 0, title: 'Титул', voice: 'b-hook' },
+      { i: 1, title: 'Загадка', voice: 'b-hook' },
+      { i: 2, title: 'Симулятор', voice: 'b-setup', hasLab: true },
+      { i: 3, title: 'Вопрос 1', voice: 'b-q1' },
+      { i: 4, title: 'Формула', voice: 'b-formula' },
+      { i: 5, title: 'Вопрос 2', voice: 'b-q2' },
+      { i: 6, title: 'Ошибки', voice: 'b-misconcept' },
+      { i: 7, title: 'В жизнь', voice: 'b-transfer' },
+      { i: 8, title: 'Итог', voice: 'b-outro' }
+    ]
+  };
+  manifest.voiceScript.fullNarration = manifest.voiceScript.beats.map(b => b.say).join(' ');
+
+  const state = {
+    auto: true,
+    U: 6, R: 6, closed: true,
+    stepIndex: 0, tween: null, particles: [],
+    beatListeners: [], holdTimer: null,
+    labActive: false
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('scene');
+  const ctx = canvas.getContext('2d');
+  const autoBox = $('autoDemo');
+  const elU = $('U');
+  const elR = $('R');
+  const keyBtn = $('keyBtn');
+
+  function nf(n, d = 1) {
+    return Number(n).toFixed(d).replace('.', ',');
+  }
+  function physics() {
+    const I = state.closed ? state.U / state.R : 0;
+    return { I, P: state.U * I };
+  }
+  function verdictOf(I, P) {
+    if (!state.closed) return { text: 'Цепь разомкнута', sub: 'I = 0', tone: 'warn' };
+    if (P < 2) return { text: 'Лампа тусклая', sub: 'слабый ток', tone: 'neutral' };
+    if (P < 8) return { text: 'Рабочий режим', sub: 'I = U / R', tone: 'good' };
+    return { text: 'Лампа яркая', sub: 'сильный ток', tone: 'good' };
+  }
+
+  function updateReadouts() {
+    const { I, P } = physics();
+    const v = verdictOf(I, P);
+    $('UVal').textContent = nf(state.U, 1) + ' В';
+    $('RVal').textContent = nf(state.R, 1) + ' Ом';
+    $('UShow').textContent = nf(state.U, 1) + ' В';
+    $('IVal').textContent = nf(I, 2) + ' А';
+    $('PVal').textContent = nf(P, 2) + ' Вт';
+    $('PBar').style.width = Math.min(100, (P / 36) * 100) + '%';
+    $('verdictVal').textContent = v.text;
+    $('verdictSub').textContent = v.sub;
+    $('g-verdict').className = 'gauge' + (v.tone === 'warn' ? ' warn' : v.tone === 'good' ? ' good' : '');
+    elU.value = state.U;
+    elR.value = state.R;
+    keyBtn.classList.toggle('on', state.closed);
+    keyBtn.setAttribute('aria-pressed', state.closed ? 'true' : 'false');
+    $('keyLab').textContent = state.closed ? 'замкнут' : 'разомкнут';
+    $('keySt').textContent = state.closed ? 'замкнута' : 'разомкнута';
+    if (!state.auto && state.labActive) {
+      if (!state.closed) {
+        $('status').textContent = 'Ключ разомкнут: ток ноль. На источнике напряжение всё ещё есть.';
+        $('status').className = 'status warn';
+      } else {
+        $('status').textContent = 'I = ' + nf(state.U, 1) + ' / ' + nf(state.R, 1) + ' = ' + nf(I, 2) + ' А · P = ' + nf(P, 2) + ' Вт';
+        $('status').className = 'status' + (P >= 8 ? ' good' : '');
+      }
+    }
+  }
+
+  function setManualLock(locked) {
+    elU.disabled = locked;
+    elR.disabled = locked;
+    keyBtn.disabled = locked;
+    $('ctrl-U').classList.toggle('locked', locked);
+    $('ctrl-R').classList.toggle('locked', locked);
+    $('ctrl-closed').classList.toggle('locked', locked);
+    keyBtn.style.pointerEvents = locked ? 'none' : '';
+  }
+  function clearHighlights() {
+    document.querySelectorAll('.ctrl.highlight, .gauge.highlight').forEach(el => el.classList.remove('highlight'));
+  }
+  function highlight(ids) {
+    clearHighlights();
+    (ids || []).forEach(id => {
+      const el = document.querySelector('[data-control="' + id + '"]') || $('ctrl-' + id) || $('g-' + id);
+      if (el) el.classList.add('highlight');
+    });
+  }
+  function beatById(id) {
+    return manifest.voiceScript.beats.find(b => b.id === id);
+  }
+  function showVoice(beat) {
+    if (!beat) return;
+    $('voiceText').textContent = beat.say;
+    $('voiceMeta').textContent = 'beat: ' + beat.id + ' · phase: ' + (beat.phase || '—');
+    state.beatListeners.forEach(fn => { try { fn(beat); } catch (_) {} });
+  }
+
+  function setAuto(on) {
+    state.auto = on;
+    autoBox.checked = on;
+    $('autoBadge').textContent = on ? 'AUTO' : 'MANUAL';
+    $('autoBadge').className = 'auto-badge ' + (on ? 'on' : 'off');
+    $('autoHint').textContent = on
+      ? 'Само крутит опыты. Сними галочку — крути сам.'
+      : 'Ручной режим: U, R и ключ твои.';
+    setManualLock(on);
+    if (state.holdTimer) { clearTimeout(state.holdTimer); state.holdTimer = null; }
+    if (on && state.labActive) {
+      state.stepIndex = 0;
+      startStep(0);
+    } else {
+      state.tween = null;
+      clearHighlights();
+      if (state.labActive) {
+        $('status').textContent = 'Ручной режим. Подергай ползунки.';
+        $('status').className = 'status';
+      }
+      updateReadouts();
+    }
+  }
+
+  function startStep(index) {
+    const steps = manifest.autoDemo.steps;
+    if (!steps.length || !state.auto || !state.labActive) return;
+    const step = steps[index % steps.length];
+    state.stepIndex = index % steps.length;
+    const beat = beatById(step.sayId) || { id: step.sayId, phase: 'demo', say: 'Смотри на приборы.' };
+    showVoice(beat);
+    highlight(step.highlight);
+    const from = { U: state.U, R: state.R, closed: state.closed };
+    const to = {
+      U: step.state.U ?? state.U,
+      R: step.state.R ?? state.R,
+      closed: step.state.closed !== undefined ? step.state.closed : state.closed
+    };
+    state.closed = to.closed;
+    state.tween = { from, to, t0: performance.now(), dur: step.durationMs || 4500, step };
+    $('status').textContent = 'Авто-демо: ' + beat.say;
+    $('status').className = 'status';
+    updateReadouts();
+  }
+
+  function advanceAuto() {
+    if (!state.auto || !state.labActive) return;
+    const steps = manifest.autoDemo.steps;
+    const next = state.stepIndex + 1;
+    if (next >= steps.length) {
+      showVoice({ id: 'loop', phase: 'summary', say: 'Ещё раз… Или сними «Авто-демо» и попробуй сам. Можно листать слайды дальше →' });
+      state.holdTimer = setTimeout(() => { if (state.auto && state.labActive) startStep(0); }, 2000);
+    } else startStep(next);
+  }
+
+  autoBox.addEventListener('change', () => setAuto(autoBox.checked));
+  elU.addEventListener('input', () => { if (!state.auto) { state.U = +elU.value; updateReadouts(); } });
+  elR.addEventListener('input', () => { if (!state.auto) { state.R = +elR.value; updateReadouts(); } });
+  keyBtn.addEventListener('click', () => { if (!state.auto) { state.closed = !state.closed; updateReadouts(); } });
+
+  // ── canvas ──
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas.clientWidth || 900;
+    const h = canvas.clientHeight || 280;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    state.W = w; state.H = h;
+  }
+  function circuitPath(W, H) {
+    const L = W * 0.12, R = W * 0.88, T = H * 0.28, B = H * 0.72;
+    return [{ x: L, y: B }, { x: L, y: T }, { x: R, y: T }, { x: R, y: B }, { x: L, y: B }];
+  }
+  function pointOnPath(path, t) {
+    let lens = [], total = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const len = Math.hypot(path[i + 1].x - path[i].x, path[i + 1].y - path[i].y);
+      lens.push(len); total += len;
+    }
+    let d = ((t % 1) + 1) % 1 * total;
+    for (let i = 0; i < lens.length; i++) {
+      if (d <= lens[i]) {
+        const u = lens[i] ? d / lens[i] : 0;
+        return { x: path[i].x + (path[i + 1].x - path[i].x) * u, y: path[i].y + (path[i + 1].y - path[i].y) * u };
+      }
+      d -= lens[i];
+    }
+    return path[0];
+  }
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+  function draw(dt) {
+    const W = state.W || 900, H = state.H || 280;
+    const { I, P } = physics();
+    ctx.clearRect(0, 0, W, H);
+    const bright = state.closed ? Math.pow(Math.min(1, P / 24), 0.55) : 0;
+    const g = ctx.createRadialGradient(W * 0.7, H * 0.35, 10, W * 0.7, H * 0.35, H * 0.7);
+    g.addColorStop(0, `rgba(255,${180 + bright * 60},${80},${0.08 + bright * 0.35})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    const path = circuitPath(W, H);
+    const L = path[0].x, Rgt = path[2].x, T = path[1].y, B = path[0].y;
+    const midY = (T + B) / 2, midX = (L + Rgt) / 2;
+
+    ctx.strokeStyle = state.closed ? '#6ec8ff' : '#4a5578';
+    ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.shadowColor = state.closed ? 'rgba(80,180,255,.45)' : 'transparent';
+    ctx.shadowBlur = state.closed ? 12 : 0;
+    if (state.closed) {
+      ctx.beginPath();
+      ctx.moveTo(path[0].x, path[0].y);
+      for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(L, B); ctx.lineTo(L, T); ctx.lineTo(Rgt, T); ctx.lineTo(Rgt, B);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(L, B); ctx.lineTo(midX - 28, B);
+      ctx.moveTo(midX + 28, B); ctx.lineTo(Rgt, B);
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#ff5a7a'; ctx.fillRect(L - 18, midY - 28, 10, 56);
+    ctx.fillStyle = '#3ce7ff'; ctx.fillRect(L - 6, midY - 18, 6, 36);
+    ctx.fillStyle = '#c5d4f5'; ctx.font = '700 12px system-ui,sans-serif';
+    ctx.fillText('U ' + nf(state.U, 1) + ' В', L - 28, midY + 52);
+
+    ctx.strokeStyle = '#e8f0ff'; ctx.lineWidth = 3;
+    if (state.closed) {
+      ctx.beginPath(); ctx.moveTo(midX - 26, B); ctx.lineTo(midX + 26, B); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(midX - 26, B); ctx.lineTo(midX + 18, B - 22); ctx.stroke();
+    }
+    ctx.fillStyle = '#9db0d4'; ctx.font = '600 11px system-ui,sans-serif';
+    ctx.fillText(state.closed ? 'ключ замкнут' : 'ключ разомкнут', midX - 42, B + 20);
+
+    ctx.strokeStyle = '#c39cff'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    const rx0 = midX - 50, rx1 = midX + 50;
+    ctx.moveTo(rx0, T);
+    for (let i = 0; i < 6; i++) {
+      ctx.lineTo(rx0 + (i + 0.5) * ((rx1 - rx0) / 6), T + (i % 2 === 0 ? -12 : 12));
+    }
+    ctx.lineTo(rx1, T); ctx.stroke();
+    ctx.fillStyle = '#c39cff'; ctx.font = '700 12px system-ui,sans-serif';
+    ctx.fillText('R = ' + nf(state.R, 1) + ' Ом', midX - 36, T - 18);
+
+    const lx = Rgt, ly = midY;
+    ctx.beginPath(); ctx.arc(lx, ly, 26, 0, Math.PI * 2);
+    const lg = ctx.createRadialGradient(lx - 6, ly - 6, 2, lx, ly, 26);
+    if (state.closed && I > 0.01) {
+      lg.addColorStop(0, `rgba(255,255,220,${0.55 + bright * 0.45})`);
+      lg.addColorStop(0.5, `rgba(255,200,80,${0.35 + bright * 0.5})`);
+      lg.addColorStop(1, `rgba(255,140,40,${0.1 + bright * 0.25})`);
+      ctx.shadowColor = `rgba(255,180,60,${0.3 + bright * 0.6})`;
+      ctx.shadowBlur = 10 + bright * 28;
+    } else {
+      lg.addColorStop(0, 'rgba(80,90,120,0.5)');
+      lg.addColorStop(1, 'rgba(40,50,70,0.3)');
+    }
+    ctx.fillStyle = lg; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(200,220,255,.35)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = state.closed && I > 0.01 ? 'rgba(255,220,180,.9)' : '#556';
+    ctx.beginPath(); ctx.moveTo(lx - 10, ly + 4); ctx.quadraticCurveTo(lx, ly - 10, lx + 10, ly + 4); ctx.stroke();
+
+    ctx.fillStyle = 'rgba(10,15,32,0.75)';
+    roundRect(ctx, midX - 48, B - 52, 96, 26, 10); ctx.fill();
+    ctx.fillStyle = '#7ef0ff'; ctx.font = '800 13px system-ui,sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('I = ' + nf(I, 2) + ' А', midX, B - 34);
+    ctx.textAlign = 'left';
+
+    const nPart = state.closed ? Math.min(28, 8 + Math.floor(I * 6)) : 0;
+    const speed = state.closed ? 0.08 + Math.min(I, 4) * 0.06 : 0;
+    while (state.particles.length < nPart) state.particles.push({ t: Math.random() });
+    state.particles.length = nPart;
+    state.particles.forEach(p => {
+      p.t = (p.t + speed * (dt || 0.016)) % 1;
+      if (!state.closed) return;
+      const pt = pointOnPath(path, p.t);
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(126,240,255,0.9)'; ctx.fill();
+    });
+
+    ctx.fillStyle = 'rgba(180,190,220,0.22)';
+    ctx.font = '700 16px Georgia,serif';
+    ctx.fillText('I = U / R', W - 100, 24);
+  }
+
+  // ── slide enter: voice + lab auto ──
+  function onSlideEnter(i) {
+    const slide = slides[i];
+    const voiceId = slide.getAttribute('data-voice');
+    const beat = beatById(voiceId);
+    if (beat) showVoice(beat);
+
+    const isLab = i === 2;
+    if (isLab) {
+      state.labActive = true;
+      resize();
+      if (state.auto) {
+        if (state.holdTimer) clearTimeout(state.holdTimer);
+        state.holdTimer = setTimeout(() => {
+          if (state.labActive && state.auto) startStep(0);
+        }, 900);
+      }
+      updateReadouts();
+    } else {
+      // pause auto when leaving lab (keep state)
+      state.labActive = false;
+      state.tween = null;
+      if (state.holdTimer) { clearTimeout(state.holdTimer); state.holdTimer = null; }
+    }
+  }
+
+  window.__LAB = {
+    manifest,
+    getState: () => ({ ...physics(), U: state.U, R: state.R, closed: state.closed, auto: state.auto, slide: idx }),
+    setAuto,
+    isAuto: () => state.auto,
+    getSlide: () => idx,
+    goToSlide: (n) => go(n),
+    getVoiceBeats: () => manifest.voiceScript.beats,
+    getNarrationText: () => manifest.voiceScript.fullNarration,
+    getQuestions: () => manifest.interaction.questions,
+    onBeat: (cb) => {
+      state.beatListeners.push(cb);
+      return () => { state.beatListeners = state.beatListeners.filter(x => x !== cb); };
+    },
+    goToStep: (i) => { if (state.auto && state.labActive) startStep(i); },
+    exportForTTS: () => ({
+      meta: manifest.meta,
+      persona: manifest.voiceScript.persona,
+      style: manifest.voiceScript.style,
+      beats: manifest.voiceScript.beats,
+      fullNarration: manifest.voiceScript.fullNarration,
+      questions: manifest.interaction.questions,
+      autoDemo: manifest.autoDemo,
+      slides: manifest.slides
+    })
+  };
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state.auto && state.labActive && state.tween) {
+      const { from, to, t0, dur } = state.tween;
+      const u = Math.min(1, (now - t0) / dur);
+      const e = u * u * (3 - 2 * u);
+      state.U = from.U + (to.U - from.U) * e;
+      state.R = from.R + (to.R - from.R) * e;
+      updateReadouts();
+      if (u >= 1) {
+        state.U = to.U; state.R = to.R; state.closed = to.closed;
+        state.tween = null; updateReadouts();
+        state.holdTimer = setTimeout(advanceAuto, 400);
+      }
+    }
+    if (state.labActive || idx === 2) draw(dt);
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('resize', () => { if (idx === 2) resize(); });
+  // hash restore
+  const m = location.hash.match(/s(\d+)/i);
+  const start = m ? Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1)) : 0;
+  go(start);
+  resize();
+  updateReadouts();
+  setManualLock(true);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

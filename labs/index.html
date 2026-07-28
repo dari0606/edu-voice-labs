@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Учебные слайды — лаборатории</title>
+<style>
+  :root{--bg:#f6f5fb;--ink:#232135;--muted:#6f6b80;--accent:#7359ff;--line:#e4e1f0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;padding:40px 20px}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background-image:linear-gradient(rgba(83,63,190,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(83,63,190,.05) 1px,transparent 1px);
+    background-size:28px 28px}
+  .wrap{position:relative;max-width:900px;margin:0 auto}
+  .badge{display:inline-block;padding:6px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5640d6}
+  h1{margin:16px 0 8px;font-size:clamp(1.8rem,4vw,2.6rem);letter-spacing:-.02em}
+  .lead{color:var(--muted);margin-bottom:28px;max-width:36em;line-height:1.5}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  a.card{display:block;padding:20px;border-radius:18px;background:#fff;border:1px solid var(--line);
+    text-decoration:none;color:inherit;box-shadow:0 10px 28px rgba(50,40,120,.08);transition:transform .12s,border-color .12s}
+  a.card:hover{transform:translateY(-2px);border-color:#c4b8ff}
+  a.card .g{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  a.card h2{font-size:1.2rem;margin-bottom:8px}
+  a.card p{font-size:.9rem;color:var(--muted);line-height:1.45}
+  footer{margin-top:36px;font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">edu-voice-lab · HTML-слайды</span>
+  <h1>Интерактивные презентации</h1>
+  <p class="lead">Листай слайды, смотри авто-демо, снимай галочку и крути сам. Есть сценарий для голосовой ИИ.</p>
+  <div class="grid">
+    <a class="card" href="zakon-oma.html"><div class="g">8 класс</div><h2>Закон Ома</h2><p>I = U / R · ток, напряжение, ключ</p></a>
+    <a class="card" href="davlenie-zhidkosti.html"><div class="g">7 класс</div><h2>Давление в жидкости</h2><p>p = ρgh · глубина и плотность</p></a>
+    <a class="card" href="rychag.html"><div class="g">7 класс</div><h2>Рычаг</h2><p>M = F·d · качели и равновесие</p></a>
+    <a class="card" href="posled-parallel.html"><div class="g">8 класс</div><h2>Последовательно и параллельно</h2><p>гирлянда vs люстра · 2 лампы</p></a>
+  </div>
+  <footer>Авто-демо вкл. по умолчанию · ← → пробел · свайп · window.__LAB.exportForTTS()</footer>
+</div>
+</body>
+</html>

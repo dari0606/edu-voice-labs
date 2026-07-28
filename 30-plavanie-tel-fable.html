@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Условия плавания тел — интерактивная визуализация (версия Fable)</title>
+<script>
+// Конфиг MathJax: помечаем документ классом mj-ready, когда формулы отрисованы
+window.MathJax = {
+  tex: { displayMath: [['$$', '$$']], inlineMath: [['\\(', '\\)']] },
+  startup: {
+    pageReady(){
+      return MathJax.startup.defaultPageReady().then(function(){
+        document.documentElement.classList.add('mj-ready');
+      });
+    }
+  }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+<style>
+  :root{
+    --bg:#f6f5fb;
+    --card:#ffffff;
+    --ink:#232135;
+    --muted:#6f6b80;
+    --line:#e4e1f0;
+    --accent:#7359ff;
+    --accent-deep:#5640d6;
+    --blue:#4f7396;
+    --amber:#ef9d2e;
+    --green:#5f8f5a;
+    --red:#c04f43;
+    --purple:#7d6b9e;
+    --radius:20px;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 28px rgba(50,40,120,.08);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    position: relative;
+  }
+  body::before{
+    content:"";
+    position: fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(83,63,190,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(83,63,190,.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{ position:relative; z-index:1; max-width:980px; margin:0 auto; padding:40px 20px 60px; }
+
+  /* ── шапка ── */
+  .badge{
+    display:inline-block; padding:6px 14px; border-radius:999px;
+    background:#fff; border:1px solid var(--line);
+    font-size:.8rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--accent-deep); box-shadow:var(--shadow);
+  }
+  h1{ margin:18px 0 10px; font-size:clamp(2.1rem, 5.5vw, 3.1rem); letter-spacing:-.02em; line-height:1.1; }
+  .subtitle{ font-size:clamp(1.05rem, 2.5vw, 1.25rem); color:var(--muted); max-width:660px; }
+
+  /* ── секции и карточки ── */
+  section{ margin-top:46px; }
+  .kicker{
+    font-size:.78rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:6px;
+  }
+  .sec-title{ font-size:clamp(1.4rem,3.4vw,1.8rem); letter-spacing:-.01em; margin-bottom:14px; }
+  .card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:22px;
+  }
+  .card p + p{ margin-top:10px; }
+  .muted{ color:var(--muted); }
+  .hidden{ display:none !important; }
+
+  /* ── симулятор ── */
+  .sim-card{ padding:16px; }
+  canvas{ display:block; width:100%; }
+  #scene{ border-radius:14px; cursor:grab; touch-action:none; }
+  #scene.dragging{ cursor:grabbing; }
+  .scene-hint{ font-size:.82rem; color:var(--muted); margin:8px 2px 0; }
+
+  .modes{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .mode-btn{
+    flex:1 1 auto; min-width:160px;
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    border:2px solid var(--line); background:#fff; cursor:pointer;
+    font:inherit; font-weight:600; font-size:.9rem; color:var(--ink);
+    padding:10px 14px; border-radius:12px;
+    transition:border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .mode-btn:hover{ border-color:var(--accent); }
+  .mode-btn:active{ transform:scale(.97); }
+  .mode-btn.active{ border-color:var(--accent); background:#f0ecff; color:var(--accent-deep); }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .chip{
+    flex:1 1 auto; min-width:104px;
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    border:2px solid var(--line); background:#fff; cursor:pointer;
+    font:inherit; font-weight:700; font-size:.88rem; color:var(--ink);
+    padding:8px 10px; border-radius:12px;
+    transition:border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .chip small{ font-weight:600; color:var(--muted); font-size:.72rem; }
+  .chip:hover{ border-color:var(--accent); }
+  .chip:active{ transform:scale(.97); }
+  .chip.active{ border-color:var(--accent); background:#f0ecff; color:var(--accent-deep); }
+  .chip.active small{ color:var(--accent-deep); }
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:16px; align-items:center;
+    margin-top:12px; padding:14px 16px;
+    background:#f4f2fd; border:1px solid var(--line); border-radius:14px;
+  }
+  .ctrl-slider{ flex:1 1 300px; }
+  .ctrl-slider label{
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+    font-size:.85rem; font-weight:600; color:var(--muted); margin-bottom:6px;
+  }
+  .ctrl-slider label b{ color:var(--accent-deep); font-size:.95rem; white-space:nowrap; }
+  .slider{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:8px; border-radius:999px;
+    background:linear-gradient(90deg, #a8d8c9, #74b3f0, #2c7a86);
+    outline:none; cursor:pointer;
+  }
+  .slider::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:26px; height:26px; border-radius:50%;
+    background:#fff; border:4px solid var(--accent);
+    box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:grab;
+  }
+  .slider::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%;
+    background:#fff; border:4px solid var(--accent);
+    box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:grab;
+  }
+  .track-marks{ position:relative; height:16px; font-size:.7rem; color:var(--muted); }
+  .track-marks span{ position:absolute; transform:translateX(-50%); white-space:nowrap; }
+
+  .btn{
+    border:none; cursor:pointer; font:inherit; font-weight:700;
+    padding:12px 22px; border-radius:999px;
+    background:var(--accent); color:#fff;
+    box-shadow:0 2px 8px rgba(115,89,255,.35);
+    transition:transform .08s ease, background .15s ease;
+  }
+  .btn:hover{ background:var(--accent-deep); }
+  .btn:active{ transform:scale(.97); }
+  .btn.ghost{
+    background:transparent; color:var(--accent-deep);
+    border:2px solid var(--accent); box-shadow:none;
+  }
+  .btn.ghost:hover{ background:rgba(115,89,255,.08); }
+
+  .gauges{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-top:14px; }
+  .gauge{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; text-align:center; }
+  .gauge .g-label{ font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .gauge .g-val{ font-size:1.35rem; font-weight:800; letter-spacing:-.02em; line-height:1.15; margin-top:4px; }
+  .gauge .g-sub{ font-size:.78rem; font-weight:600; color:var(--muted); }
+  .gauge.body .g-val{ color:var(--ink); }
+  .gauge.liq  .g-val{ color:var(--blue); }
+  .gauge.frac .g-val{ color:var(--accent-deep); }
+  .gauge.verdict .g-val{ font-size:1.15rem; }
+  .gauge.verdict.float   .g-val{ color:var(--green); }
+  .gauge.verdict.neutral .g-val{ color:var(--blue); }
+  .gauge.verdict.sink    .g-val{ color:var(--red); }
+
+  .sim-status{
+    margin-top:14px; padding:12px 16px; min-height:52px;
+    background:#f4f2fd; border-left:4px solid var(--accent); border-radius:0 12px 12px 0;
+    font-size:.98rem;
+  }
+  .sim-status.good{ background:#eef5ec; border-left-color:var(--green); }
+  .sim-status.warn{ background:#f9ecea; border-left-color:var(--red); }
+  .sim-status b{ color:var(--accent-deep); }
+
+  /* ── формула ── */
+  .formula{
+    font-family: Georgia, "Times New Roman", serif;
+    font-size:clamp(1.3rem, 3.5vw, 1.7rem);
+    text-align:center; padding:18px 10px;
+    background:#f4f2fd; border-radius:14px; border:1px dashed #d3ccf2;
+    margin:14px 0;
+  }
+  .formula .var{ color:var(--accent-deep); font-style:italic; font-weight:700; }
+  .formula .mj-tex{ visibility:hidden; }
+  .mj-ready .formula .mj-tex{ visibility:visible; }
+  .formula .mj-fallback{ display:none; }
+  .mj-fallback-on .formula .mj-tex{ display:none; }
+  .mj-fallback-on .formula .mj-fallback{ display:inline; }
+  .mj-ready .formula .mj-fallback{ display:none !important; }
+  .mj-ready.mj-fallback-on .formula .mj-tex{ display:inline; }
+
+  .cases{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:16px 0; }
+  @media (max-width:640px){ .cases{ grid-template-columns:1fr; } }
+  .case{ border-radius:14px; padding:14px; text-align:center; border:1px solid var(--line); }
+  .case.float  { background:#eef5ec; }
+  .case.neutral{ background:#eef3f8; }
+  .case.sink   { background:#f9ecea; }
+  .case .c-formula{ font-family:Georgia, serif; font-size:1.15rem; font-weight:700; }
+  .case.float   .c-formula{ color:var(--green); }
+  .case.neutral .c-formula{ color:var(--blue); }
+  .case.sink    .c-formula{ color:var(--red); }
+  .case p{ font-size:.88rem; color:var(--muted); margin-top:4px; }
+
+  .legend{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+  @media (max-width:620px){ .legend{ grid-template-columns:1fr; } }
+  .legend .item{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .legend .item b{ color:var(--accent-deep); font-size:1.02rem; }
+  .legend .item p{ font-size:.9rem; color:var(--muted); margin-top:2px; }
+
+  .mini-wrap{ margin-top:14px; }
+  .mini-wrap canvas{ border-radius:12px; border:1px solid var(--line); background:#fbfaff; }
+  .mini-bar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px; }
+  .mini-note{ font-size:.88rem; color:var(--muted); flex:1 1 220px; }
+
+  /* ── факты ── */
+  .facts{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; }
+  .fact{ padding:18px; }
+  .fact .f-emoji{ font-size:1.7rem; }
+  .fact h3{ font-size:1.02rem; margin:8px 0 6px; }
+  .fact p{ font-size:.92rem; color:var(--muted); }
+
+  footer{ margin-top:56px; text-align:center; font-size:.85rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══ Шапка ═══ -->
+  <header>
+    <span class="badge">Физика · 7 класс</span>
+    <h1>Условия плавания тел</h1>
+    <p class="subtitle">Стальной гвоздь мгновенно идёт ко дну. Стальной корабль весом в сто тысяч тонн — спокойно плавает. Как вода решает, кого держать, а кого топить?</p>
+  </header>
+
+  <!-- ═══ Симулятор ═══ -->
+  <section>
+    <div class="kicker">Симулятор</div>
+    <h2 class="sec-title">Бассейн-лаборатория</h2>
+    <div class="card sim-card">
+      <canvas id="scene"></canvas>
+      <div class="scene-hint" id="sceneHint">Выбери шар и жидкость. А ещё — <b>схвати шар мышкой или пальцем, утопи и отпусти</b>: вода сама покажет, кто здесь плавает.</div>
+
+      <div class="modes">
+        <button class="mode-btn active" data-mode="ball">🟠 Шары из разных материалов</button>
+        <button class="mode-btn" data-mode="sub">🚢 Подводная лодка</button>
+      </div>
+
+      <div id="ballControls">
+        <div class="chips" id="chips"></div>
+      </div>
+      <div id="subControls" class="hidden">
+        <div class="chips">
+          <button class="chip" id="fillBtn">Принять балласт<small>цистерны заполняются водой</small></button>
+          <button class="chip" id="blowBtn">Продуть балласт<small>вода выталкивается воздухом</small></button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-slider">
+          <label for="rhoL">Плотность жидкости <b id="rhoLLab">1000 кг/м³ · пресная вода</b></label>
+          <input type="range" class="slider" id="rhoL" min="700" max="1600" step="10" value="1000">
+          <div class="track-marks">
+            <span style="left:11.1%">спирт·800</span>
+            <span style="left:33.3%">вода·1000</span>
+            <span style="left:60%">Мёртвое море·1240</span>
+          </div>
+        </div>
+        <button class="btn" id="dropBtn">Бросить шар</button>
+        <button class="btn ghost" id="resetBtn">Сбросить</button>
+      </div>
+
+      <div class="gauges">
+        <div class="gauge body">
+          <div class="g-label">Плотность тела</div>
+          <div class="g-val"><span id="rhoBodyVal">240</span></div>
+          <div class="g-sub">кг/м³</div>
+        </div>
+        <div class="gauge liq">
+          <div class="g-label">Плотность жидкости</div>
+          <div class="g-val"><span id="rhoLiqVal">1000</span></div>
+          <div class="g-sub" id="liqName">пресная вода</div>
+        </div>
+        <div class="gauge frac">
+          <div class="g-label">Погружено</div>
+          <div class="g-val"><span id="fracVal">24</span>%</div>
+          <div class="g-sub">объёма тела</div>
+        </div>
+        <div class="gauge verdict float" id="verdictGauge">
+          <div class="g-label">Вердикт воды</div>
+          <div class="g-val" id="verdictVal">Плавает</div>
+          <div class="g-sub" id="verdictSub">ρ тела &lt; ρ жидкости</div>
+        </div>
+      </div>
+
+      <div class="sim-status" id="statusBox"></div>
+    </div>
+  </section>
+
+  <!-- ═══ Как это устроено ═══ -->
+  <section>
+    <div class="kicker">Как это устроено</div>
+    <h2 class="sec-title">Спор двух сил — и три исхода</h2>
+    <div class="card">
+      <p>На любое тело в жидкости давят две силы: вниз тянет <b style="color:var(--red)">сила тяжести</b>, вверх выталкивает <b style="color:var(--blue)">архимедова сила</b>. Кто из них победит — зависит только от того, чья плотность больше: тела или жидкости.</p>
+      <div class="cases">
+        <div class="case float">
+          <div class="c-formula">ρ<sub>т</sub> &lt; ρ<sub>ж</sub></div>
+          <p><b>Всплывает</b> и плавает на поверхности: Архимед сильнее тяжести.</p>
+        </div>
+        <div class="case neutral">
+          <div class="c-formula">ρ<sub>т</sub> = ρ<sub>ж</sub></div>
+          <p><b>Висит в толще</b> на любой глубине: силы точно равны.</p>
+        </div>
+        <div class="case sink">
+          <div class="c-formula">ρ<sub>т</sub> &gt; ρ<sub>ж</sub></div>
+          <p><b>Тонет</b>: тяжесть сильнее, вода не может удержать.</p>
+        </div>
+      </div>
+      <p class="muted" style="font-size:.92rem;">Проверь все три случая в бассейне выше: пробка (240) — всплывает, пластик (1050) — почти равен воде, сталь (7800) — тонет всегда.</p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3 style="font-size:1.1rem; margin-bottom:6px;">Почему же плавает стальной корабль?</h3>
+      <p>Секрет в слове <b>«средняя»</b>. Корабль — это не сплошная сталь: внутри корпуса очень много воздуха. Средняя плотность «сталь + воздух» получается меньше плотности воды. Нажми кнопку и посмотри, что случится с тем же самым металлом, если выгнать из него весь воздух:</p>
+      <div class="mini-wrap">
+        <canvas id="ship" height="190"></canvas>
+        <div class="mini-bar">
+          <button class="btn" id="meltBtn">Переплавить корабль в слиток</button>
+          <div class="mini-note" id="meltNote">Корабль: сталь + воздух внутри корпуса → средняя плотность ≈ 300 кг/м³ — меньше воды, плавает.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Формула ═══ -->
+  <section>
+    <div class="kicker">Формула</div>
+    <h2 class="sec-title">Насколько глубоко сидит плавающее тело</h2>
+    <div class="card">
+      <p>Если тело плавает на поверхности, доля его объёма под водой равна отношению плотностей:</p>
+      <div class="formula">
+        <span class="mj-tex">$$\frac{V_{\text{погр}}}{V} = \frac{\rho_{\text{т}}}{\rho_{\text{ж}}}$$</span>
+        <span class="mj-fallback"><span class="var">V</span><sub>погр</sub> / <span class="var">V</span> = <span class="var">ρ</span><sub>т</sub> / <span class="var">ρ</span><sub>ж</sub></span>
+      </div>
+      <div class="legend">
+        <div class="item">
+          <b>V<sub>погр</sub> / V — доля под водой</b>
+          <p>Это прибор «Погружено» в симуляторе: какая часть объёма тела скрыта в жидкости.</p>
+        </div>
+        <div class="item">
+          <b>ρ<sub>т</sub> и ρ<sub>ж</sub> — плотности</b>
+          <p>Тела и жидкости, в кг/м³. Их задают выбор шара и ползунок.</p>
+        </div>
+      </div>
+      <p>Проверь на льде: 900 / 1000 = 0,9. Значит, у плавающей льдины <b>90% объёма прячется под водой</b> — над водой торчит только десятая часть. Это и есть знаменитая «верхушка айсберга».</p>
+    </div>
+  </section>
+
+  <!-- ═══ Факты ═══ -->
+  <section>
+    <div class="kicker">Вот это да!</div>
+    <h2 class="sec-title">Три факта, которыми можно удивить друзей</h2>
+    <div class="facts">
+      <div class="card fact">
+        <div class="f-emoji">🧊</div>
+        <h3>Айсберг-подводник</h3>
+        <p>У айсберга под водой скрыто около 90% объёма. Капитаны боятся не той части, которую видно, а той, которую не видно, — поэтому «Титаник» и не успел увернуться.</p>
+      </div>
+      <div class="card fact">
+        <div class="f-emoji">🌊</div>
+        <h3>Море, где нельзя утонуть</h3>
+        <p>Вода Мёртвого моря такая солёная, что её плотность около 1240 кг/м³ — больше плотности человека. Люди лежат на воде, как поплавки, и читают газеты.</p>
+      </div>
+      <div class="card fact">
+        <div class="f-emoji">🐟</div>
+        <h3>Рыба — живая подлодка</h3>
+        <p>Рыбы меняют глубину плавательным пузырём: сжали его — плотность тела выросла, погрузились. Подводные лодки делают то же самое балластными цистернами.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Интерактивная визуализация · Физика · 7 класс</footer>
+</div>
+
+<script>
+'use strict';
+
+// фолбэк формул: если MathJax не отрисовался за 3,5 с (нет интернета) — показываем HTML-версию
+setTimeout(function(){
+  if (!document.documentElement.classList.contains('mj-ready')){
+    document.documentElement.classList.add('mj-fallback-on');
+  }
+}, 3500);
+
+/* ═══════════════ утилиты ═══════════════ */
+function fitCanvas(cv, cssH){
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || cv.parentElement.clientWidth;
+  cv.style.height = cssH + 'px';
+  cv.width  = Math.round(w * dpr);
+  cv.height = Math.round(cssH * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return ctx;
+}
+function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+function lerp(a, b, t){ return a + (b - a) * t; }
+function fmtRu(x, d){ return x.toLocaleString('ru-RU', { maximumFractionDigits: d, minimumFractionDigits: 0 }); }
+
+/* ═══════════════ данные ═══════════════ */
+const MATERIALS = [
+  { name:'Пробка',  rho:240,  color:'#d9b98a' },
+  { name:'Дуб',     rho:700,  color:'#a97b4b' },
+  { name:'Лёд',     rho:900,  color:'#cfe8f4' },
+  { name:'Пластик', rho:1050, color:'#e0607a' },
+  { name:'Сталь',   rho:7800, color:'#98a2b0' },
+];
+
+function liquidName(rho){
+  if (rho < 900)  return 'похоже на спирт';
+  if (rho < 1015) return 'пресная вода';
+  if (rho < 1100) return 'морская вода';
+  if (rho < 1400) return 'крепкий рассол';
+  return 'сверхплотный рассол';
+}
+
+// оттенок воды зависит от плотности: спирт светлее, рассол гуще
+function waterColor(rho){
+  const a = [168, 214, 200], b = [116, 168, 216], c = [44, 110, 122];
+  let rgb;
+  if (rho <= 1000){
+    const t = (rho - 700) / 300;
+    rgb = [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+  } else {
+    const t = (rho - 1000) / 600;
+    rgb = [lerp(b[0], c[0], t), lerp(b[1], c[1], t), lerp(b[2], c[2], t)];
+  }
+  return rgb.map(Math.round);
+}
+
+/* ═══════════════ состояние ═══════════════ */
+const state = {
+  mode: 'ball',            // 'ball' | 'sub'
+  matIdx: 0,
+  rhoL: 1000,
+  t: 0,
+  hintShown: true,         // подсказка «схвати шар» до первого захвата
+  ball: { x: 0, y: 0, vx: 0, vy: 0, dragging: false },
+  sub:  { y: 0, v: 0, fill: 0, fillTarget: 0 },
+  ship: { melt: 0, target: 0 },   // 0 — корабль, 1 — слиток
+};
+
+const R_BALL = 30;          // радиус шара, px
+const G_PX = 760;           // «ускорение свободного падения» сцены, px/с²
+
+/* ═══════════════ геометрия сцены ═══════════════ */
+const scene = document.getElementById('scene');
+const shipCv = document.getElementById('ship');
+let sctx, shctx, W = 0, H = 0, SHIP_H = 190;
+let tank = { x0: 0, x1: 0, top: 0, bot: 0, waterY: 0, wall: 9 };
+
+function layoutTank(){
+  tank.x0 = 26; tank.x1 = W - 26;
+  tank.top = 22; tank.bot = H - 18;
+  tank.waterY = tank.top + (tank.bot - tank.top) * 0.22;
+}
+
+/* ═══════════════ физика ═══════════════ */
+// доля объёма шара под водой: объём шарового сегмента глубиной h (0..2R)
+function fracV(h, R){
+  h = clamp(h, 0, 2 * R);
+  return h * h * (3 * R - h) / (4 * R * R * R);
+}
+function ballFrac(){
+  const bottom = state.ball.y + R_BALL;
+  return fracV(bottom - tank.waterY, R_BALL);
+}
+function rhoBody(){ return MATERIALS[state.matIdx].rho; }
+
+function stepBall(dt){
+  const b = state.ball;
+  if (b.dragging) return;
+  const frac = ballFrac();
+  const q = state.rhoL / rhoBody();
+  // архимед против тяжести (в долях g), знак вниз положительный
+  let a = G_PX * (1 - q * frac);
+  // вязкое сопротивление: в воде сильнее
+  const drag = 0.4 + 3.2 * frac;
+  a -= drag * b.vy;
+  // нейтральная плавучесть (±2%): мягко зависаем в толще
+  const qq = rhoBody() / state.rhoL;
+  if (frac >= 0.999 && Math.abs(qq - 1) <= 0.02){
+    const midY = (tank.waterY + tank.bot) / 2;
+    a = (midY - b.y) * 2.2 - b.vy * 2.4;
+  }
+  b.vy += a * dt;
+  b.vx -= b.vx * (0.6 + 2.5 * frac) * dt;
+  b.y += b.vy * dt;
+  b.x += b.vx * dt;
+
+  // стенки и дно
+  const floorY = tank.bot - tank.wall - R_BALL;
+  if (b.y > floorY){ b.y = floorY; if (Math.abs(b.vy) > 30) spawnBubbles(b.x, b.y + R_BALL * 0.6, 3); b.vy *= -0.22; }
+  if (b.y < tank.top + R_BALL){ b.y = tank.top + R_BALL; b.vy = Math.abs(b.vy) * 0.3; }
+  const xMin = tank.x0 + tank.wall + R_BALL, xMax = tank.x1 - tank.wall - R_BALL;
+  if (b.x < xMin){ b.x = xMin; b.vx = Math.abs(b.vx) * 0.4; }
+  if (b.x > xMax){ b.x = xMax; b.vx = -Math.abs(b.vx) * 0.4; }
+
+  // пузыри и круги на воде
+  if (frac > 0.05 && frac < 1 && Math.abs(b.vy) > 55) spawnRipple(b.x);
+  if (frac > 0.15 && Math.abs(b.vy) > 90 && Math.random() < 0.35) spawnBubbles(b.x, b.y, 1);
+}
+
+const SUB_W = 118, SUB_H = 34;
+function subRho(){ return 800 + state.sub.fill * 420; }   // 800 … 1220 кг/м³
+function subFrac(){
+  const s = state.sub;
+  return clamp((s.y + SUB_H / 2 - tank.waterY) / SUB_H, 0, 1);
+}
+function stepSub(dt){
+  const s = state.sub;
+  // балласт плавно набирается/продувается
+  const prevFill = s.fill;
+  s.fill += clamp(s.fillTarget - s.fill, -dt * 0.4, dt * 0.4);
+  if (s.fill < prevFill && Math.random() < 0.5){
+    spawnBubbles(W / 2 - 30 + Math.random() * 60, s.y + SUB_H / 2, 2);   // продувка — пузыри из цистерн
+  }
+  const frac = subFrac();
+  const q = state.rhoL / subRho();
+  let a = G_PX * (1 - q * frac);
+  a -= (0.5 + 3.6 * frac) * s.v;
+  const qq = subRho() / state.rhoL;
+  if (frac >= 0.999 && Math.abs(qq - 1) <= 0.02){
+    const midY = (tank.waterY + tank.bot) / 2;
+    a = (midY - s.y) * 2.2 - s.v * 2.4;
+  }
+  s.v += a * dt;
+  s.y += s.v * dt;
+  const floorY = tank.bot - tank.wall - SUB_H / 2;
+  if (s.y > floorY){ s.y = floorY; s.v *= -0.15; }
+  if (s.y < tank.top + SUB_H){ s.y = tank.top + SUB_H; s.v = Math.abs(s.v) * 0.2; }
+  if (frac > 0.05 && frac < 1 && Math.abs(s.v) > 40) spawnRipple(W / 2);
+}
+
+/* ═══════════════ частицы ═══════════════ */
+const bubbles = [], ripples = [];
+function spawnBubbles(x, y, n){
+  for (let i = 0; i < n; i++){
+    bubbles.push({ x: x + (Math.random() - 0.5) * 16, y: y, r: 1.5 + Math.random() * 2.5,
+                   vy: 40 + Math.random() * 45, ph: Math.random() * 6.28 });
+  }
+  if (bubbles.length > 60) bubbles.splice(0, bubbles.length - 60);
+}
+function spawnRipple(x){
+  const last = ripples[ripples.length - 1];
+  if (last && state.t - last.born < 0.25) return;   // не чаще 4 в секунду
+  ripples.push({ x: x, born: state.t });
+  if (ripples.length > 8) ripples.shift();
+}
+
+/* ═══════════════ отрисовка сцены ═══════════════ */
+function surfaceAt(x){
+  return tank.waterY + Math.sin(x * 0.045 + state.t * 1.7) * 1.6 + Math.sin(x * 0.013 - state.t * 1.1) * 1.2;
+}
+
+function drawScene(dt){
+  const ctx = sctx;
+  ctx.clearRect(0, 0, W, H);
+
+  // фон комнаты
+  const room = ctx.createLinearGradient(0, 0, 0, H);
+  room.addColorStop(0, '#f2f0fb'); room.addColorStop(1, '#e7e4f4');
+  ctx.fillStyle = room; ctx.fillRect(0, 0, W, H);
+
+  const [wr, wg, wb] = waterColor(state.rhoL);
+  const inX0 = tank.x0 + tank.wall, inX1 = tank.x1 - tank.wall;
+  const floorY = tank.bot - tank.wall;
+
+  // вода: волнистая поверхность + градиент глубины
+  const wcTop = 'rgba(' + wr + ',' + wg + ',' + wb + ',.75)';
+  const wcBot = 'rgba(' + Math.round(wr * 0.55) + ',' + Math.round(wg * 0.62) + ',' + Math.round(wb * 0.66) + ',.95)';
+  const wg1 = ctx.createLinearGradient(0, tank.waterY, 0, floorY);
+  wg1.addColorStop(0, wcTop); wg1.addColorStop(1, wcBot);
+  ctx.fillStyle = wg1;
+  ctx.beginPath();
+  ctx.moveTo(inX0, surfaceAt(inX0));
+  for (let x = inX0; x <= inX1; x += 7) ctx.lineTo(x, surfaceAt(x));
+  ctx.lineTo(inX1, floorY); ctx.lineTo(inX0, floorY);
+  ctx.closePath(); ctx.fill();
+
+  // блик по кромке воды
+  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(inX0, surfaceAt(inX0));
+  for (let x = inX0; x <= inX1; x += 7) ctx.lineTo(x, surfaceAt(x));
+  ctx.stroke();
+
+  // световые столбы и каустики
+  ctx.save();
+  ctx.beginPath(); ctx.rect(inX0, tank.waterY - 4, inX1 - inX0, floorY - tank.waterY + 4); ctx.clip();
+  for (let k = 0; k < 2; k++){
+    const cxs = inX0 + (inX1 - inX0) * (0.28 + k * 0.42) + Math.sin(state.t * 0.5 + k * 3) * 14;
+    const shaft = ctx.createLinearGradient(0, tank.waterY, 0, floorY);
+    shaft.addColorStop(0, 'rgba(255,255,255,.16)'); shaft.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = shaft;
+    ctx.beginPath();
+    ctx.moveTo(cxs - 16, tank.waterY); ctx.lineTo(cxs + 16, tank.waterY);
+    ctx.lineTo(cxs + 44, floorY); ctx.lineTo(cxs - 44, floorY);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1.5;
+  for (let k = 0; k < 3; k++){
+    const y = tank.waterY + 14 + k * 11;
+    ctx.beginPath();
+    for (let x = inX0; x <= inX1; x += 9){
+      const yy = y + Math.sin(x * 0.06 + state.t * (1.3 + k * 0.4) + k * 2) * 3;
+      (x === inX0) ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // дно с затенением
+  const fg = ctx.createLinearGradient(0, floorY - 14, 0, floorY);
+  fg.addColorStop(0, 'rgba(40,60,90,0)'); fg.addColorStop(1, 'rgba(40,60,90,.22)');
+  ctx.fillStyle = fg; ctx.fillRect(inX0, floorY - 14, inX1 - inX0, 14);
+
+  // круги на воде
+  for (let i = ripples.length - 1; i >= 0; i--){
+    const rp = ripples[i], age = state.t - rp.born;
+    if (age > 1.4){ ripples.splice(i, 1); continue; }
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.5 * (1 - age / 1.4)).toFixed(2) + ')';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(rp.x, tank.waterY, 8 + age * 46, 3 + age * 7, 0, 0, 7); ctx.stroke();
+  }
+
+  // тело
+  if (state.mode === 'ball') drawBall(ctx);
+  else drawSub(ctx);
+
+  // пузыри
+  for (let i = bubbles.length - 1; i >= 0; i--){
+    const p = bubbles[i];
+    p.y -= p.vy * dt;
+    p.x += Math.sin(state.t * 4 + p.ph) * 14 * dt;
+    if (p.y < surfaceAt(p.x) + 3){ spawnRipple(p.x); bubbles.splice(i, 1); continue; }
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.stroke();
+  }
+
+  // стеклянные стенки поверх воды
+  drawGlass(ctx);
+
+  // шкала глубины на левой стенке
+  ctx.strokeStyle = 'rgba(35,33,53,.35)'; ctx.lineWidth = 1.5;
+  ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'left';
+  for (let y = tank.waterY; y < floorY - 6; y += 44){
+    ctx.beginPath(); ctx.moveTo(inX0, y); ctx.lineTo(inX0 + 8, y); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(35,33,53,.5)';
+  ctx.fillText('глубина', inX0 + 12, tank.waterY + 16);
+}
+
+function drawGlass(ctx){
+  const t = tank.wall;
+  const glass = ctx.createLinearGradient(tank.x0, 0, tank.x0 + t, 0);
+  glass.addColorStop(0, '#c7ccdd'); glass.addColorStop(0.5, '#eef0f8'); glass.addColorStop(1, '#b9bfd3');
+  // левая, правая, дно
+  ctx.fillStyle = glass; ctx.fillRect(tank.x0, tank.top, t, tank.bot - tank.top);
+  const glass2 = ctx.createLinearGradient(tank.x1 - t, 0, tank.x1, 0);
+  glass2.addColorStop(0, '#b9bfd3'); glass2.addColorStop(0.5, '#eef0f8'); glass2.addColorStop(1, '#c7ccdd');
+  ctx.fillStyle = glass2; ctx.fillRect(tank.x1 - t, tank.top, t, tank.bot - tank.top);
+  const glass3 = ctx.createLinearGradient(0, tank.bot - t, 0, tank.bot);
+  glass3.addColorStop(0, '#c9cede'); glass3.addColorStop(1, '#aab0c6');
+  ctx.fillStyle = glass3; ctx.fillRect(tank.x0, tank.bot - t, tank.x1 - tank.x0, t);
+  // верхние срезы стенок
+  ctx.fillStyle = '#f4f5fa';
+  ctx.fillRect(tank.x0 - 2, tank.top - 4, t + 4, 5);
+  ctx.fillRect(tank.x1 - t - 2, tank.top - 4, t + 4, 5);
+  // вертикальный блик на стекле
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  ctx.fillRect(tank.x0 + 2, tank.top + 6, 2, tank.bot - tank.top - 14);
+}
+
+/* ── шар с текстурой материала ── */
+function drawBall(ctx){
+  const b = state.ball, m = MATERIALS[state.matIdx];
+  const frac = ballFrac();
+
+  // тень на дне (гуще, когда шар у дна)
+  const floorY = tank.bot - tank.wall;
+  const closeness = clamp(1 - (floorY - (b.y + R_BALL)) / 120, 0.15, 1);
+  ctx.fillStyle = 'rgba(35,45,80,' + (0.22 * closeness).toFixed(2) + ')';
+  ctx.beginPath(); ctx.ellipse(b.x, floorY - 4, R_BALL * (1.4 - 0.5 * closeness), 6, 0, 0, 7); ctx.fill();
+
+  ctx.save();
+  ctx.beginPath(); ctx.arc(b.x, b.y, R_BALL, 0, 7); ctx.clip();
+  // база с объёмом
+  const bg = ctx.createRadialGradient(b.x - R_BALL * 0.35, b.y - R_BALL * 0.4, 3, b.x, b.y, R_BALL * 1.25);
+  bg.addColorStop(0, '#ffffff'); bg.addColorStop(0.25, m.color); bg.addColorStop(1, shade(m.color, -0.35));
+  ctx.fillStyle = bg; ctx.fillRect(b.x - R_BALL, b.y - R_BALL, R_BALL * 2, R_BALL * 2);
+  // текстура
+  if (state.matIdx === 0){         // пробка: крапинки
+    ctx.fillStyle = 'rgba(120,85,40,.4)';
+    for (let i = 0; i < 14; i++){
+      const a = i * 2.4, r = (i % 5 + 2) * R_BALL / 8;
+      ctx.fillRect(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r, 2.5, 1.6);
+    }
+  } else if (state.matIdx === 1){  // дуб: годовые кольца
+    ctx.strokeStyle = 'rgba(90,55,25,.4)'; ctx.lineWidth = 1.4;
+    for (let r = 6; r < R_BALL; r += 7){
+      ctx.beginPath(); ctx.arc(b.x - 6, b.y + 4, r, 0, 7); ctx.stroke();
+    }
+  } else if (state.matIdx === 2){  // лёд: морозные штрихи
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(b.x - 14, b.y - 4); ctx.lineTo(b.x + 2, b.y - 20); ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,190,215,.5)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(b.x - 8, b.y + 12); ctx.lineTo(b.x + 14, b.y - 8); ctx.stroke();
+  } else if (state.matIdx === 3){  // пластик: глянцевый блик
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.beginPath(); ctx.ellipse(b.x - 10, b.y - 12, 8, 4.5, -0.6, 0, 7); ctx.fill();
+  } else {                          // сталь: анизотропный блик
+    const mg = ctx.createLinearGradient(b.x - R_BALL, 0, b.x + R_BALL, 0);
+    mg.addColorStop(0, 'rgba(255,255,255,0)'); mg.addColorStop(0.45, 'rgba(255,255,255,.55)');
+    mg.addColorStop(0.55, 'rgba(255,255,255,.15)'); mg.addColorStop(1, 'rgba(40,50,65,.3)');
+    ctx.fillStyle = mg; ctx.fillRect(b.x - R_BALL, b.y - R_BALL, R_BALL * 2, R_BALL * 2);
+  }
+  // притемнение подводной части
+  const wl = surfaceAt(b.x);
+  if (b.y + R_BALL > wl){
+    ctx.fillStyle = 'rgba(30,60,100,.16)';
+    ctx.fillRect(b.x - R_BALL, Math.max(wl, b.y - R_BALL), R_BALL * 2, R_BALL * 2);
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = shade(m.color, -0.45); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(b.x, b.y, R_BALL, 0, 7); ctx.stroke();
+
+  drawForces(ctx, b.x, b.y, rhoBody(), state.rhoL * frac);
+
+  // подсказка «схвати меня» — до первого захвата
+  if (state.hintShown && !b.dragging){
+    const bob = Math.sin(state.t * 2.5) * 3;
+    ctx.fillStyle = '#5640d6'; ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('схвати меня!', b.x, b.y - R_BALL - 34 + bob);
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y - R_BALL - 12 + bob);
+    ctx.lineTo(b.x - 5, b.y - R_BALL - 22 + bob);
+    ctx.lineTo(b.x + 5, b.y - R_BALL - 22 + bob);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+/* ── стрелки сил с честными длинами ── */
+function drawForces(ctx, x, y, fGrav, fArch){
+  const k = 56 / 1000;                       // px на единицу плотности
+  const Lg = clamp(fGrav * k, 12, 108);
+  const La = clamp(fArch * k, 0, 108);
+  const capG = fGrav * k > 108, winner = fArch > fGrav;
+  if (La > 2) arrow(ctx, x - R_BALL - 16, y, -La, '#4f7396', winner, 'Архимед');
+  arrow(ctx, x + R_BALL + 16, y, Lg, '#c04f43', !winner, capG ? 'Тяжесть ×' + fmtRu(fGrav / 1000, 1) : 'Тяжесть');
+}
+function arrow(ctx, x, y, len, color, bold, label){
+  const y2 = y + len, dir = Math.sign(len);
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = bold ? 4 : 2.5;
+  ctx.globalAlpha = bold ? 1 : 0.7;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y2 - dir * 8); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y2); ctx.lineTo(x - 5, y2 - dir * 10); ctx.lineTo(x + 5, y2 - dir * 10);
+  ctx.closePath(); ctx.fill();
+  // плашка-подпись
+  ctx.font = '700 12px system-ui, sans-serif';
+  const tw = ctx.measureText(label).width + 12;
+  let lx = clamp(x - tw / 2, tank.x0 + tank.wall + 2, tank.x1 - tank.wall - tw - 2);
+  const ly = y2 + (dir > 0 ? 8 : -24);
+  ctx.fillStyle = 'rgba(255,255,255,.92)';
+  ctx.strokeStyle = color; ctx.lineWidth = 1.2;
+  roundRect(ctx, lx, ly, tw, 17, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.textAlign = 'left';
+  ctx.fillText(label, lx + 6, ly + 13);
+  ctx.globalAlpha = 1;
+}
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function shade(hex, k){   // затемнить (k<0) / осветлить (k>0) цвет
+  const n = parseInt(hex.slice(1), 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (k < 0){ r *= 1 + k; g *= 1 + k; b *= 1 + k; }
+  else { r += (255 - r) * k; g += (255 - g) * k; b += (255 - b) * k; }
+  return 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+}
+
+/* ── подводная лодка ── */
+function drawSub(ctx){
+  const s = state.sub, x = W / 2, y = s.y;
+  const frac = subFrac();
+
+  // корпус-капсула
+  const hull = ctx.createLinearGradient(0, y - SUB_H / 2, 0, y + SUB_H / 2);
+  hull.addColorStop(0, '#ffd76e'); hull.addColorStop(0.5, '#ef9d2e'); hull.addColorStop(1, '#b56f14');
+  ctx.fillStyle = hull;
+  roundRect(ctx, x - SUB_W / 2, y - SUB_H / 2, SUB_W, SUB_H, SUB_H / 2); ctx.fill();
+  ctx.strokeStyle = '#8a5510'; ctx.lineWidth = 1.5;
+  roundRect(ctx, x - SUB_W / 2, y - SUB_H / 2, SUB_W, SUB_H, SUB_H / 2); ctx.stroke();
+  // рубка с перископом
+  ctx.fillStyle = '#d98a1d';
+  roundRect(ctx, x - 16, y - SUB_H / 2 - 14, 32, 16, 5); ctx.fill();
+  ctx.strokeStyle = '#8a5510'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x + 6, y - SUB_H / 2 - 14); ctx.lineTo(x + 6, y - SUB_H / 2 - 26); ctx.lineTo(x + 15, y - SUB_H / 2 - 26); ctx.stroke();
+  // иллюминаторы
+  for (let i = -1; i <= 1; i++){
+    ctx.fillStyle = '#cfe8f4';
+    ctx.beginPath(); ctx.arc(x + i * 28, y - 2, 6, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#8a5510'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x + i * 28, y - 2, 6, 0, 7); ctx.stroke();
+  }
+  // винт крутится по скорости
+  const spin = state.t * (3 + Math.abs(s.v) * 0.12);
+  ctx.strokeStyle = '#8a5510'; ctx.lineWidth = 3;
+  for (let i = 0; i < 3; i++){
+    const a = spin + i * 2.09;
+    ctx.beginPath();
+    ctx.moveTo(x - SUB_W / 2 - 2, y);
+    ctx.lineTo(x - SUB_W / 2 - 2 - Math.cos(a) * 10, y + Math.sin(a) * 10);
+    ctx.stroke();
+  }
+  // балластные цистерны: окно с уровнем воды
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  roundRect(ctx, x - 40, y + 3, 34, 12, 4); ctx.fill();
+  roundRect(ctx, x + 6, y + 3, 34, 12, 4); ctx.fill();
+  ctx.fillStyle = 'rgba(79,115,150,.8)';
+  const fw = 34 * s.fill;
+  if (fw > 1){
+    roundRect(ctx, x - 40, y + 3 + 12 * (1 - s.fill), 34, 12 * s.fill, 3); ctx.fill();
+    roundRect(ctx, x + 6, y + 3 + 12 * (1 - s.fill), 34, 12 * s.fill, 3); ctx.fill();
+  }
+  ctx.strokeStyle = '#8a5510'; ctx.lineWidth = 1.2;
+  roundRect(ctx, x - 40, y + 3, 34, 12, 4); ctx.stroke();
+  roundRect(ctx, x + 6, y + 3, 34, 12, 4); ctx.stroke();
+  ctx.fillStyle = 'rgba(35,33,53,.6)'; ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('балласт', x - 23, y + 28);
+  ctx.fillText('балласт', x + 23, y + 28);
+
+  drawForces(ctx, x, y, subRho(), state.rhoL * frac);
+}
+
+/* ═══════════════ мини-сцена: корабль против слитка ═══════════════ */
+function drawShip(dt){
+  const ctx = shctx, w = shipCv.clientWidth, h = SHIP_H;
+  const st = state.ship;
+  st.melt += clamp(st.target - st.melt, -dt * 1.1, dt * 1.1);
+  const p = st.melt;   // 0 корабль … 1 слиток
+
+  ctx.clearRect(0, 0, w, h);
+  const waterY = h * 0.42, floorY = h - 12;
+  // вода
+  const wgr = ctx.createLinearGradient(0, waterY, 0, floorY);
+  wgr.addColorStop(0, 'rgba(116,168,216,.7)'); wgr.addColorStop(1, 'rgba(62,100,140,.9)');
+  ctx.fillStyle = wgr; ctx.fillRect(8, waterY, w - 16, floorY - waterY);
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let x = 8; x <= w - 8; x += 8){
+    const yy = waterY + Math.sin(x * 0.05 + state.t * 1.6) * 1.5;
+    (x === 8) ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+  }
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(40,60,90,.2)'; ctx.fillRect(8, floorY - 6, w - 16, 6);
+
+  const cx = w / 2;
+  // корабль (тает при переплавке)
+  if (p < 0.99){
+    ctx.globalAlpha = 1 - p;
+    const bob = Math.sin(state.t * 1.4) * 2;
+    const sy = waterY + bob;
+    // корпус: осадка небольшая — средняя плотность мала
+    ctx.fillStyle = '#8a5540';
+    ctx.beginPath();
+    ctx.moveTo(cx - 70, sy - 6); ctx.lineTo(cx + 70, sy - 6);
+    ctx.lineTo(cx + 52, sy + 18); ctx.lineTo(cx - 52, sy + 18);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f4f5fa';
+    ctx.fillRect(cx - 34, sy - 26, 68, 20);
+    ctx.fillStyle = '#c04f43';
+    ctx.fillRect(cx - 6, sy - 40, 14, 14);
+    ctx.fillStyle = 'rgba(35,33,53,.7)';
+    for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.arc(cx + i * 14, sy - 16, 3, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#5f8f5a'; ctx.font = '700 12px system-ui, sans-serif'; ctx.textAlign = 'center';
+    if (p < 0.3) ctx.fillText('средняя ρ ≈ 300 кг/м³ — плавает', cx, waterY - 44);
+  }
+  // слиток (тонет при переплавке)
+  if (p > 0.01){
+    ctx.globalAlpha = Math.min(1, p * 1.4);
+    const iy = lerp(waterY + 6, floorY - 12, p);
+    const ig = ctx.createLinearGradient(0, iy - 12, 0, iy + 12);
+    ig.addColorStop(0, '#cdd3dc'); ig.addColorStop(1, '#6d7683');
+    ctx.fillStyle = ig;
+    ctx.beginPath();
+    ctx.moveTo(cx - 36, iy + 12); ctx.lineTo(cx + 36, iy + 12);
+    ctx.lineTo(cx + 28, iy - 12); ctx.lineTo(cx - 28, iy - 12);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#4a525e'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+    if (p > 0.7){
+      ctx.fillStyle = '#c04f43'; ctx.font = '700 12px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('та же сталь без воздуха: ρ = 7800 — тонет', cx, waterY - 44);
+    }
+  }
+}
+
+/* ═══════════════ показания и статус ═══════════════ */
+const rhoBodyVal = document.getElementById('rhoBodyVal');
+const rhoLiqVal = document.getElementById('rhoLiqVal');
+const liqName = document.getElementById('liqName');
+const fracVal = document.getElementById('fracVal');
+const verdictGauge = document.getElementById('verdictGauge');
+const verdictVal = document.getElementById('verdictVal');
+const verdictSub = document.getElementById('verdictSub');
+const statusBox = document.getElementById('statusBox');
+let lastReadout = '';
+
+function updateReadouts(){
+  const body = state.mode === 'ball' ? rhoBody() : Math.round(subRho());
+  const frac = state.mode === 'ball' ? ballFrac() : subFrac();
+  const q = body / state.rhoL;
+  let vClass, vText, vSub, sClass, sHtml;
+  const name = state.mode === 'ball' ? MATERIALS[state.matIdx].name.toLowerCase() : 'лодка';
+
+  if (q < 0.98){
+    vClass = 'float'; vText = 'Плавает'; vSub = 'ρ тела < ρ жидкости';
+    sClass = 'good';
+    sHtml = '<b>' + cap(name) + ' плавает:</b> ' + body + ' < ' + state.rhoL +
+            ' кг/м³. Под водой ровно ' + Math.round(q * 100) + '% объёма — по формуле ρ<sub>т</sub>/ρ<sub>ж</sub>.' +
+            (state.matIdx === 0 && state.mode === 'ball' ? ' Попробуй утопить пробку мышкой — вода вытолкнет её обратно!' : '');
+  } else if (q <= 1.02){
+    vClass = 'neutral'; vText = 'Висит в толще'; vSub = 'ρ тела = ρ жидкости';
+    sClass = '';
+    sHtml = '<b>Редкий случай равновесия:</b> плотности почти равны (' + body + ' ≈ ' + state.rhoL +
+            ' кг/м³), и тело зависает в толще на любой глубине — так «парят» рыбы и подлодки.';
+  } else {
+    vClass = 'sink'; vText = 'Тонет'; vSub = 'ρ тела > ρ жидкости';
+    sClass = 'warn';
+    sHtml = '<b>' + cap(name) + ' тонет:</b> ' + body + ' > ' + state.rhoL +
+            ' кг/м³ — тяжесть побеждает Архимеда.' +
+            (state.mode === 'ball' && state.matIdx === 3 ? ' Но пластик (1050) почти на грани: <b>сделай воду солёнее ползунком</b> — и он всплывёт!' :
+             state.mode === 'ball' && state.matIdx === 4 ? ' Сталь не спасёт даже Мёртвое море. Как же плавают корабли? Ответ — ниже.' : '');
+  }
+
+  const sig = vText + body + state.rhoL + Math.round(frac * 100) + state.mode;
+  if (sig === lastReadout) return;
+  lastReadout = sig;
+
+  rhoBodyVal.textContent = fmtRu(body, 0);
+  rhoLiqVal.textContent = fmtRu(state.rhoL, 0);
+  liqName.textContent = liquidName(state.rhoL);
+  fracVal.textContent = Math.round(frac * 100);
+  verdictGauge.className = 'gauge verdict ' + vClass;
+  verdictVal.textContent = vText;
+  verdictSub.innerHTML = vSub.replace('<', '&lt;').replace('>', '&gt;');
+  statusBox.className = 'sim-status ' + sClass;
+  statusBox.innerHTML = sHtml;
+}
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* ═══════════════ контролы ═══════════════ */
+const chipsBox = document.getElementById('chips');
+MATERIALS.forEach(function(m, i){
+  const b = document.createElement('button');
+  b.className = 'chip' + (i === 0 ? ' active' : '');
+  b.innerHTML = m.name + '<small>' + fmtRu(m.rho, 0) + ' кг/м³</small>';
+  b.addEventListener('click', function(){
+    state.matIdx = i;
+    chipsBox.querySelectorAll('.chip').forEach(function(x, j){ x.classList.toggle('active', j === i); });
+  });
+  chipsBox.appendChild(b);
+});
+
+const rhoLInput = document.getElementById('rhoL');
+const rhoLLab = document.getElementById('rhoLLab');
+rhoLInput.addEventListener('input', function(){
+  state.rhoL = parseFloat(rhoLInput.value);
+  rhoLLab.textContent = fmtRu(state.rhoL, 0) + ' кг/м³ · ' + liquidName(state.rhoL);
+});
+
+const modeButtons = Array.prototype.slice.call(document.querySelectorAll('.mode-btn'));
+modeButtons.forEach(function(b){
+  b.addEventListener('click', function(){
+    state.mode = b.dataset.mode;
+    modeButtons.forEach(function(x){ x.classList.toggle('active', x === b); });
+    document.getElementById('ballControls').classList.toggle('hidden', state.mode !== 'ball');
+    document.getElementById('subControls').classList.toggle('hidden', state.mode !== 'sub');
+    document.getElementById('dropBtn').classList.toggle('hidden', state.mode !== 'ball');
+    document.getElementById('sceneHint').innerHTML = state.mode === 'ball'
+      ? 'Выбери шар и жидкость. А ещё — <b>схвати шар мышкой или пальцем, утопи и отпусти</b>: вода сама покажет, кто здесь плавает.'
+      : 'Управляй средней плотностью лодки: <b>принять балласт</b> — цистерны заполняются водой, лодка тяжелеет и погружается; <b>продуть</b> — воздух выталкивает воду, лодка всплывает.';
+  });
+});
+
+document.getElementById('dropBtn').addEventListener('click', function(){
+  const b = state.ball;
+  b.x = (tank.x0 + tank.x1) / 2; b.y = tank.top + R_BALL + 6; b.vx = 0; b.vy = 0;
+});
+document.getElementById('resetBtn').addEventListener('click', function(){
+  state.matIdx = 0;
+  chipsBox.querySelectorAll('.chip').forEach(function(x, j){ x.classList.toggle('active', j === 0); });
+  state.rhoL = 1000; rhoLInput.value = 1000;
+  rhoLLab.textContent = '1000 кг/м³ · пресная вода';
+  const b = state.ball;
+  b.x = (tank.x0 + tank.x1) / 2; b.y = tank.waterY - 4; b.vx = 0; b.vy = 0;
+  state.sub.fill = 0; state.sub.fillTarget = 0; state.sub.y = tank.waterY - 2; state.sub.v = 0;
+  bubbles.length = 0; ripples.length = 0;
+});
+document.getElementById('fillBtn').addEventListener('click', function(){ state.sub.fillTarget = 1; });
+document.getElementById('blowBtn').addEventListener('click', function(){ state.sub.fillTarget = 0; });
+document.getElementById('meltBtn').addEventListener('click', function(){
+  const st = state.ship;
+  st.target = st.target === 0 ? 1 : 0;
+  document.getElementById('meltBtn').textContent = st.target === 1 ? 'Собрать корабль обратно' : 'Переплавить корабль в слиток';
+  document.getElementById('meltNote').textContent = st.target === 1
+    ? 'Слиток: та же масса стали, но без воздуха → плотность 7800 кг/м³ — больше воды, тонет.'
+    : 'Корабль: сталь + воздух внутри корпуса → средняя плотность ≈ 300 кг/м³ — меньше воды, плавает.';
+});
+
+/* ── захват шара мышкой/пальцем ── */
+let dragPrevY = 0, dragPrevX = 0, dragPrevT = 0;
+scene.addEventListener('pointerdown', function(e){
+  if (state.mode !== 'ball') return;
+  const r = scene.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  const b = state.ball;
+  if (Math.hypot(px - b.x, py - b.y) <= R_BALL + 12){
+    b.dragging = true; state.hintShown = false;
+    scene.classList.add('dragging');
+    scene.setPointerCapture(e.pointerId);
+    dragPrevX = px; dragPrevY = py; dragPrevT = performance.now();
+  }
+});
+scene.addEventListener('pointermove', function(e){
+  const b = state.ball;
+  if (!b.dragging) return;
+  const r = scene.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  const now = performance.now(), dt = Math.max(0.008, (now - dragPrevT) / 1000);
+  b.vx = (px - dragPrevX) / dt * 0.6;
+  b.vy = (py - dragPrevY) / dt * 0.6;
+  dragPrevX = px; dragPrevY = py; dragPrevT = now;
+  b.x = clamp(px, tank.x0 + tank.wall + R_BALL, tank.x1 - tank.wall - R_BALL);
+  b.y = clamp(py, tank.top + R_BALL, tank.bot - tank.wall - R_BALL);
+  if (Math.abs(b.vy) > 60) spawnRipple(b.x);
+});
+function endDrag(){
+  if (state.ball.dragging){ state.ball.dragging = false; scene.classList.remove('dragging'); }
+}
+scene.addEventListener('pointerup', endDrag);
+scene.addEventListener('pointercancel', endDrag);
+
+/* ═══════════════ раскладка и цикл ═══════════════ */
+function layout(){
+  const sceneH = clamp(Math.round(scene.parentElement.clientWidth * 0.52), 320, 430);
+  sctx = fitCanvas(scene, sceneH);
+  W = scene.clientWidth; H = sceneH;
+  layoutTank();
+  shctx = fitCanvas(shipCv, SHIP_H);
+  // тела — в разумные позиции при первом расчёте/повороте экрана
+  const b = state.ball;
+  if (!b.x){ b.x = (tank.x0 + tank.x1) / 2; b.y = tank.waterY - 4; }
+  b.x = clamp(b.x, tank.x0 + tank.wall + R_BALL, tank.x1 - tank.wall - R_BALL);
+  b.y = clamp(b.y, tank.top + R_BALL, tank.bot - tank.wall - R_BALL);
+  if (!state.sub.y) state.sub.y = tank.waterY - 2;
+}
+window.addEventListener('resize', layout);
+layout();
+
+let last = performance.now();
+function frame(now){
+  let dt = (now - last) / 1000; last = now;
+  if (dt < 0) dt = 0; else if (dt > 0.05) dt = 0.05;
+  state.t += dt;
+  if (state.mode === 'ball') stepBall(dt); else stepSub(dt);
+  drawScene(dt);
+  drawShip(dt);
+  updateReadouts();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
