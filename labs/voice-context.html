@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Текст для голосовой ИИ — edu-voice-labs</title>
+<style>
+  :root{--bg:#0f1020;--card:#1a1830;--ink:#f2efff;--muted:#9b94c4;--accent:#a89cff;--line:rgba(168,156,255,.25)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding:28px 18px 80px}
+  .wrap{max-width:900px;margin:0 auto}
+  a{color:var(--accent)}
+  .badge{display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  h1{margin:14px 0 8px;font-size:clamp(1.6rem,4vw,2.3rem)}
+  .lead{color:var(--muted);margin-bottom:22px;max-width:40em}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+  .toc a{padding:8px 12px;border-radius:999px;border:1px solid var(--line);text-decoration:none;font-size:.88rem;font-weight:700}
+  .lab{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:22px}
+  .lab header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .lab h2{font-size:1.25rem}
+  .links{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .links a,.copy{font-size:.82rem;font-weight:700}
+  .copy{cursor:pointer;border:1px solid var(--line);background:rgba(168,156,255,.12);color:var(--ink);padding:7px 12px;border-radius:999px}
+  .copy:hover{background:rgba(168,156,255,.22)}
+  h3{margin:16px 0 8px;font-size:.95rem;color:var(--accent);letter-spacing:.02em}
+  .hint{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+  .block{white-space:pre-wrap;word-break:break-word;background:#0c0d18;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:.92rem;line-height:1.55;max-height:320px;overflow:auto}
+  .block.small{font-size:.78rem;max-height:240px}
+  .beats{margin:8px 0 0 1.1em}
+  .beats li{margin:8px 0;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .phase{display:inline-block;min-width:4.5em;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#7ef0ff}
+  code{font-size:.75rem;color:#c39cff;margin-right:6px}
+  .say{display:inline}
+  .topnav{margin-bottom:18px}
+  .ok{position:fixed;bottom:18px;right:18px;background:#5f8f5a;color:#fff;padding:10px 14px;border-radius:12px;font-weight:700;opacity:0;transition:.2s;pointer-events:none}
+  .ok.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav"><a href="index.html">← к лабораториям</a></div>
+  <span class="badge">voice context · для голосовой ИИ</span>
+  <h1>Текст, который берёт голосовая модель</h1>
+  <p class="lead">Ниже — полный сценарий озвучки по каждой теме: continuous fullNarration и пошаговые beats (фаза + id + реплика). Копируй в TTS / voice agent. На слайдах симулятора тот же текст доступен через окно «Скрипт» и <code>window.__LAB.exportForTTS()</code>.</p>
+  <nav class="toc">
+    <a href="#zakon-oma">Закон Ома</a><a href="#davlenie-zhidkosti">Давление в жидкости</a><a href="#rychag">Рычаг</a><a href="#posled-parallel">Последовательно и параллельно</a>
+  </nav>
+  
+  <article class="lab" id="zakon-oma">
+    <header>
+      <h2>Закон Ома</h2>
+      <div class="links">
+        <a href="zakon-oma.html">открыть слайды</a>
+        <a href="zakon-oma.narration.txt">narration.txt</a>
+        <a href="zakon-oma.manifest.json">manifest.json</a>
+        <button type="button" class="copy" data-copy="full-zakon-oma">копировать весь текст</button>
+      </div>
+    </header>
+    <h3>1. Полный текст для TTS (fullNarration)</h3>
+    <p class="hint">Это основной контекст: голосовая модель может прочитать подряд.</p>
+    <pre id="full-zakon-oma" class="block">Смотри на лампу. Иногда она едва тлеет, а иногда слепит. Провода те же. Меняется только напряжение и сопротивление. Кто командует током? На столе учебная цепь: источник, ключ, резистор и лампа. Ток пойдёт, только если ключ замкнут. Старт. Шесть вольт. Шесть ом. Сила тока — один ампер. Лампа горит ровно, по-рабочему. Вопрос. Если напряжение удвоим до двенадцати вольт, а сопротивление не тронем — ток станет больше или меньше? Во сколько раз? Удвоили напряжение — ток тоже удвоился. Было один ампер, стало два. Больше «давление» источника — сильнее поток. А теперь сопротивление тоже удвоим — двенадцать ом. Ток падает обратно до одного ампера. Сопротивление мешает потоку. Вот закон Ома. Сила тока равна напряжению, делённому на сопротивление. И равно У на эр. Размыкаем ключ. Цепь разорвана. Ток ноль. Лампа гаснет, хотя на источнике по-прежнему двенадцать вольт. Ещё вопрос. Ток «заканчивается» в лампе, или он один и тот же по всей последовательной цепи? Ток не съедается. В такой цепи он один на всех участках. Лампа берёт энергию, а не «кусок ампер». Замыкаем снова. Двенадцать вольт, всего четыре ома. Ток три ампера — лампа яркая. Так работает яркость: больше мощность — больше свет и тепло. В жизни так устроены диммер и реостат: крутишь сопротивление — меняется ток. А предохранитель рвёт цепь, если ток слишком большой. Итог. И равно У на эр. Больше напряжение — больше ток. Больше сопротивление — меньше ток. Ключ разомкнут — ток ноль. Сними галочку «Авто-демо» и подергай ползунки сам.</pre>
+    <h3>2. Реплики по шагам (beats) — для синхрона со слайдами/авто-демо</h3>
+    <ol class="beats">
+      
+    </ol>
+    <h3>3. JSON для API</h3>
+    <pre class="block small" id="json-zakon-oma">{
+  &quot;title&quot;: &quot;Закон Ома&quot;,
+  &quot;fullNarration&quot;: &quot;Смотри на лампу. Иногда она едва тлеет, а иногда слепит. Провода те же. Меняется только напряжение и сопротивление. Кто командует током? На столе учебная цепь: источник, ключ, резистор и лампа. Ток пойдёт, только если ключ замкнут. Старт. Шесть вольт. Шесть ом. Сила тока — один ампер. Лампа горит ровно, по-рабочему. Вопрос. Если напряжение удвоим до двенадцати вольт, а сопротивление не тронем — ток станет больше или меньше? Во сколько раз? Удвоили напряжение — ток тоже удвоился. Было один ампер, стало два. Больше «давление» источника — сильнее поток. А теперь сопротивление тоже удвоим — двенадцать ом. Ток падает обратно до одного ампера. Сопротивление мешает потоку. Вот закон Ома. Сила тока равна напряжению, делённому на сопротивление. И равно У на эр. Размыкаем ключ. Цепь разорвана. Ток ноль. Лампа гаснет, хотя на источнике по-прежнему двенадцать вольт. Ещё вопрос. Ток «заканчивается» в лампе, или он один и тот же по всей последовательной цепи? Ток не съедается. В такой цепи он один на всех участках. Лампа берёт энергию, а не «кусок ампер». Замыкаем снова. Двенадцать вольт, всего четыре ома. Ток три ампера — лампа яркая. Так работает яркость: больше мощность — больше свет и тепло. В жизни так устроены диммер и реостат: крутишь сопротивление — меняется ток. А предохранитель рвёт цепь, если ток слишком большой. Итог. И равно У на эр. Больше напряжение — больше ток. Больше сопротивление — меньше ток. Ключ разомкнут — ток ноль. Сними галочку «Авто-демо» и подергай ползунки сам.&quot;,
+  &quot;beats&quot;: []
+}</pre>
+    <button type="button" class="copy" data-copy="json-zakon-oma">копировать JSON</button>
+  </article>
+
+  <article class="lab" id="davlenie-zhidkosti">
+    <header>
+      <h2>Давление в жидкости</h2>
+      <div class="links">
+        <a href="davlenie-zhidkosti.html">открыть слайды</a>
+        <a href="davlenie-zhidkosti.narration.txt">narration.txt</a>
+        <a href="davlenie-zhidkosti.manifest.json">manifest.json</a>
+        <button type="button" class="copy" data-copy="full-davlenie-zhidkosti">копировать весь текст</button>
+      </div>
+    </header>
+    <h3>1. Полный текст для TTS (fullNarration)</h3>
+    <p class="hint">Это основной контекст: голосовая модель может прочитать подряд.</p>
+    <pre id="full-davlenie-zhidkosti" class="block">Почему уши закладывает под водой? На поверхности почти не давит. На глубине — давит. Что изменилось? Смотри на столб жидкости. Ползунки — глубина и плотность. Давление считаем по формуле ро гэ аш. Вода. Глубина один метр. Давление около десяти килопаскалей. Почти лёгкое. Вопрос. Если опуститься на десять метров в той же воде — давление вырастет? Во сколько раз? В десять раз глубже — в десять раз больше давление. Около ста килопаскалей. Это уже ощутимо для ушей. Закон простой. Давление столба жидкости равно плотности, умноженной на гэ и на глубину. Пэ равно ро гэ аш. А если на тех же десяти метрах оказаться в Мёртвом море? Давление больше, меньше или такое же? Плотность выше — давление выше. Та же глубина, но столб «тяжелее». Уши чувствуют сильнее. Вернёмся почти к поверхности — полметра. Давление снова маленькое. Глубина решает. Важно: давление в жидкости действует во все стороны, не только вниз. И ширина бассейна в формулу не входит. Поэтому плотину делают толще снизу. А водолаз с каждыми примерно десятью метрами получает ещё одну атмосферу. Итог. Пэ равно ро гэ аш. Глубже и гуще — давит сильнее. Сними Авто-демо и подбери глубину, где около ста килопаскалей. Ещё раз… Или сними Авто-демо и попробуй сам. Можно листать дальше.</pre>
+    <h3>2. Реплики по шагам (beats) — для синхрона со слайдами/авто-демо</h3>
+    <ol class="beats">
+      <li><span class="phase">hook</span> <code>b-hook</code> <span class="say">Почему уши закладывает под водой? На поверхности почти не давит. На глубине — давит. Что изменилось?</span></li>
+<li><span class="phase">setup</span> <code>b-setup</code> <span class="say">Смотри на столб жидкости. Ползунки — глубина и плотность. Давление считаем по формуле ро гэ аш.</span></li>
+<li><span class="phase">demo</span> <code>b-shallow</code> <span class="say">Вода. Глубина один метр. Давление около десяти килопаскалей. Почти лёгкое.</span></li>
+<li><span class="phase">question</span> <code>b-q1</code> <span class="say">Вопрос. Если опуститься на десять метров в той же воде — давление вырастет? Во сколько раз?</span></li>
+<li><span class="phase">answer</span> <code>b-deep</code> <span class="say">В десять раз глубже — в десять раз больше давление. Около ста килопаскалей. Это уже ощутимо для ушей.</span></li>
+<li><span class="phase">formula</span> <code>b-formula</code> <span class="say">Закон простой. Давление столба жидкости равно плотности, умноженной на гэ и на глубину. Пэ равно ро гэ аш.</span></li>
+<li><span class="phase">question</span> <code>b-q2</code> <span class="say">А если на тех же десяти метрах оказаться в Мёртвом море? Давление больше, меньше или такое же?</span></li>
+<li><span class="phase">demo</span> <code>b-dead</code> <span class="say">Плотность выше — давление выше. Та же глубина, но столб «тяжелее». Уши чувствуют сильнее.</span></li>
+<li><span class="phase">demo</span> <code>b-surface</code> <span class="say">Вернёмся почти к поверхности — полметра. Давление снова маленькое. Глубина решает.</span></li>
+<li><span class="phase">explain</span> <code>b-misconcept</code> <span class="say">Важно: давление в жидкости действует во все стороны, не только вниз. И ширина бассейна в формулу не входит.</span></li>
+<li><span class="phase">transfer</span> <code>b-transfer</code> <span class="say">Поэтому плотину делают толще снизу. А водолаз с каждыми примерно десятью метрами получает ещё одну атмосферу.</span></li>
+<li><span class="phase">summary</span> <code>b-outro</code> <span class="say">Итог. Пэ равно ро гэ аш. Глубже и гуще — давит сильнее. Сними Авто-демо и подбери глубину, где около ста килопаскалей.</span></li>
+<li><span class="phase">summary</span> <code>loop</code> <span class="say">Ещё раз… Или сними Авто-демо и попробуй сам. Можно листать дальше.</span></li>
+    </ol>
+    <h3>3. JSON для API</h3>
+    <pre class="block small" id="json-davlenie-zhidkosti">{
+  &quot;title&quot;: &quot;Давление в жидкости&quot;,
+  &quot;fullNarration&quot;: &quot;Почему уши закладывает под водой? На поверхности почти не давит. На глубине — давит. Что изменилось? Смотри на столб жидкости. Ползунки — глубина и плотность. Давление считаем по формуле ро гэ аш. Вода. Глубина один метр. Давление около десяти килопаскалей. Почти лёгкое. Вопрос. Если опуститься на десять метров в той же воде — давление вырастет? Во сколько раз? В десять раз глубже — в десять раз больше давление. Около ста килопаскалей. Это уже ощутимо для ушей. Закон простой. Давление столба жидкости равно плотности, умноженной на гэ и на глубину. Пэ равно ро гэ аш. А если на тех же десяти метрах оказаться в Мёртвом море? Давление больше, меньше или такое же? Плотность выше — давление выше. Та же глубина, но столб «тяжелее». Уши чувствуют сильнее. Вернёмся почти к поверхности — полметра. Давление снова маленькое. Глубина решает. Важно: давление в жидкости действует во все стороны, не только вниз. И ширина бассейна в формулу не входит. Поэтому плотину делают толще снизу. А водолаз с каждыми примерно десятью метрами получает ещё одну атмосферу. Итог. Пэ равно ро гэ аш. Глубже и гуще — давит сильнее. Сними Авто-демо и подбери глубину, где около ста килопаскалей. Ещё раз… Или сними Авто-демо и попробуй сам. Можно листать дальше.&quot;,
+  &quot;beats&quot;: [
+    {
+      &quot;id&quot;: &quot;b-hook&quot;,
+      &quot;phase&quot;: &quot;hook&quot;,
+      &quot;say&quot;: &quot;Почему уши закладывает под водой? На поверхности почти не давит. На глубине — давит. Что изменилось?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-setup&quot;,
+      &quot;phase&quot;: &quot;setup&quot;,
+      &quot;say&quot;: &quot;Смотри на столб жидкости. Ползунки — глубина и плотность. Давление считаем по формуле ро гэ аш.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-shallow&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Вода. Глубина один метр. Давление около десяти килопаскалей. Почти лёгкое.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-q1&quot;,
+      &quot;phase&quot;: &quot;question&quot;,
+      &quot;say&quot;: &quot;Вопрос. Если опуститься на десять метров в той же воде — давление вырастет? Во сколько раз?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-deep&quot;,
+      &quot;phase&quot;: &quot;answer&quot;,
+      &quot;say&quot;: &quot;В десять раз глубже — в десять раз больше давление. Около ста килопаскалей. Это уже ощутимо для ушей.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-formula&quot;,
+      &quot;phase&quot;: &quot;formula&quot;,
+      &quot;say&quot;: &quot;Закон простой. Давление столба жидкости равно плотности, умноженной на гэ и на глубину. Пэ равно ро гэ аш.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-q2&quot;,
+      &quot;phase&quot;: &quot;question&quot;,
+      &quot;say&quot;: &quot;А если на тех же десяти метрах оказаться в Мёртвом море? Давление больше, меньше или такое же?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-dead&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Плотность выше — давление выше. Та же глубина, но столб «тяжелее». Уши чувствуют сильнее.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-surface&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Вернёмся почти к поверхности — полметра. Давление снова маленькое. Глубина решает.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-misconcept&quot;,
+      &quot;phase&quot;: &quot;explain&quot;,
+      &quot;say&quot;: &quot;Важно: давление в жидкости действует во все стороны, не только вниз. И ширина бассейна в формулу не входит.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-transfer&quot;,
+      &quot;phase&quot;: &quot;transfer&quot;,
+      &quot;say&quot;: &quot;Поэтому плотину делают толще снизу. А водолаз с каждыми примерно десятью метрами получает ещё одну атмосферу.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-outro&quot;,
+      &quot;phase&quot;: &quot;summary&quot;,
+      &quot;say&quot;: &quot;Итог. Пэ равно ро гэ аш. Глубже и гуще — давит сильнее. Сними Авто-демо и подбери глубину, где около ста килопаскалей.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;loop&quot;,
+      &quot;phase&quot;: &quot;summary&quot;,
+      &quot;say&quot;: &quot;Ещё раз… Или сними Авто-демо и попробуй сам. Можно листать дальше.&quot;
+    }
+  ]
+}</pre>
+    <button type="button" class="copy" data-copy="json-davlenie-zhidkosti">копировать JSON</button>
+  </article>
+
+  <article class="lab" id="rychag">
+    <header>
+      <h2>Рычаг</h2>
+      <div class="links">
+        <a href="rychag.html">открыть слайды</a>
+        <a href="rychag.narration.txt">narration.txt</a>
+        <a href="rychag.manifest.json">manifest.json</a>
+        <button type="button" class="copy" data-copy="full-rychag">копировать весь текст</button>
+      </div>
+    </header>
+    <h3>1. Полный текст для TTS (fullNarration)</h3>
+    <p class="hint">Это основной контекст: голосовая модель может прочитать подряд.</p>
+    <pre id="full-rychag" class="block">Почему малыш на качелях поднимает взрослого? Секрет не в силе, а в плече — и в моменте силы. Вот качели. Слева и справа — сила и плечо. Смотри, кто перевесит. Сорок ньютонов на два метра с обеих сторон. Моменты равны — равновесие. Вопрос. Удвоим силу справа, плечи не трогаем. Куда качнётся доска? Справа момент стал больше. Правый конец идёт вниз. Момент равен силе, умноженной на плечо. Эм равно эф на дэ. Равновесие — когда моменты равны. Отодвинем левую силу дальше — четыре метра. Момент слева вырос, и снова баланс: сорок на четыре равно восьмидесяти на два. Двадцать ньютонов на четыре метра против сорока на два. Кто победит? Оба момента по восемьдесят. Ничья. Малыш далеко — и держит взрослого. Не смотри только на «кто тяжелее». Сравни произведения силы и плеча. Так работают ножницы, гаечный ключ и тачка: правильное плечо экономит силу. Итог. Эм равно эф на дэ. Равновесие — эф один дэ один равно эф два дэ два. Сними Авто-демо и поймай баланс сам.</pre>
+    <h3>2. Реплики по шагам (beats) — для синхрона со слайдами/авто-демо</h3>
+    <ol class="beats">
+      <li><span class="phase">hook</span> <code>b-hook</code> <span class="say">Почему малыш на качелях поднимает взрослого? Секрет не в силе, а в плече — и в моменте силы.</span></li>
+<li><span class="phase">setup</span> <code>b-setup</code> <span class="say">Вот качели. Слева и справа — сила и плечо. Смотри, кто перевесит.</span></li>
+<li><span class="phase">demo</span> <code>b-bal</code> <span class="say">Сорок ньютонов на два метра с обеих сторон. Моменты равны — равновесие.</span></li>
+<li><span class="phase">question</span> <code>b-q1</code> <span class="say">Вопрос. Удвоим силу справа, плечи не трогаем. Куда качнётся доска?</span></li>
+<li><span class="phase">answer</span> <code>b-heavy</code> <span class="say">Справа момент стал больше. Правый конец идёт вниз.</span></li>
+<li><span class="phase">formula</span> <code>b-formula</code> <span class="say">Момент равен силе, умноженной на плечо. Эм равно эф на дэ. Равновесие — когда моменты равны.</span></li>
+<li><span class="phase">demo</span> <code>b-far</code> <span class="say">Отодвинем левую силу дальше — четыре метра. Момент слева вырос, и снова баланс: сорок на четыре равно восьмидесяти на два.</span></li>
+<li><span class="phase">question</span> <code>b-q2</code> <span class="say">Двадцать ньютонов на четыре метра против сорока на два. Кто победит?</span></li>
+<li><span class="phase">answer</span> <code>b-kid</code> <span class="say">Оба момента по восемьдесят. Ничья. Малыш далеко — и держит взрослого.</span></li>
+<li><span class="phase">explain</span> <code>b-misconcept</code> <span class="say">Не смотри только на «кто тяжелее». Сравни произведения силы и плеча.</span></li>
+<li><span class="phase">transfer</span> <code>b-transfer</code> <span class="say">Так работают ножницы, гаечный ключ и тачка: правильное плечо экономит силу.</span></li>
+<li><span class="phase">summary</span> <code>b-outro</code> <span class="say">Итог. Эм равно эф на дэ. Равновесие — эф один дэ один равно эф два дэ два. Сними Авто-демо и поймай баланс сам.</span></li>
+    </ol>
+    <h3>3. JSON для API</h3>
+    <pre class="block small" id="json-rychag">{
+  &quot;title&quot;: &quot;Рычаг&quot;,
+  &quot;fullNarration&quot;: &quot;Почему малыш на качелях поднимает взрослого? Секрет не в силе, а в плече — и в моменте силы. Вот качели. Слева и справа — сила и плечо. Смотри, кто перевесит. Сорок ньютонов на два метра с обеих сторон. Моменты равны — равновесие. Вопрос. Удвоим силу справа, плечи не трогаем. Куда качнётся доска? Справа момент стал больше. Правый конец идёт вниз. Момент равен силе, умноженной на плечо. Эм равно эф на дэ. Равновесие — когда моменты равны. Отодвинем левую силу дальше — четыре метра. Момент слева вырос, и снова баланс: сорок на четыре равно восьмидесяти на два. Двадцать ньютонов на четыре метра против сорока на два. Кто победит? Оба момента по восемьдесят. Ничья. Малыш далеко — и держит взрослого. Не смотри только на «кто тяжелее». Сравни произведения силы и плеча. Так работают ножницы, гаечный ключ и тачка: правильное плечо экономит силу. Итог. Эм равно эф на дэ. Равновесие — эф один дэ один равно эф два дэ два. Сними Авто-демо и поймай баланс сам.&quot;,
+  &quot;beats&quot;: [
+    {
+      &quot;id&quot;: &quot;b-hook&quot;,
+      &quot;phase&quot;: &quot;hook&quot;,
+      &quot;say&quot;: &quot;Почему малыш на качелях поднимает взрослого? Секрет не в силе, а в плече — и в моменте силы.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-setup&quot;,
+      &quot;phase&quot;: &quot;setup&quot;,
+      &quot;say&quot;: &quot;Вот качели. Слева и справа — сила и плечо. Смотри, кто перевесит.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-bal&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Сорок ньютонов на два метра с обеих сторон. Моменты равны — равновесие.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-q1&quot;,
+      &quot;phase&quot;: &quot;question&quot;,
+      &quot;say&quot;: &quot;Вопрос. Удвоим силу справа, плечи не трогаем. Куда качнётся доска?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-heavy&quot;,
+      &quot;phase&quot;: &quot;answer&quot;,
+      &quot;say&quot;: &quot;Справа момент стал больше. Правый конец идёт вниз.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-formula&quot;,
+      &quot;phase&quot;: &quot;formula&quot;,
+      &quot;say&quot;: &quot;Момент равен силе, умноженной на плечо. Эм равно эф на дэ. Равновесие — когда моменты равны.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-far&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Отодвинем левую силу дальше — четыре метра. Момент слева вырос, и снова баланс: сорок на четыре равно восьмидесяти на два.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-q2&quot;,
+      &quot;phase&quot;: &quot;question&quot;,
+      &quot;say&quot;: &quot;Двадцать ньютонов на четыре метра против сорока на два. Кто победит?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-kid&quot;,
+      &quot;phase&quot;: &quot;answer&quot;,
+      &quot;say&quot;: &quot;Оба момента по восемьдесят. Ничья. Малыш далеко — и держит взрослого.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-misconcept&quot;,
+      &quot;phase&quot;: &quot;explain&quot;,
+      &quot;say&quot;: &quot;Не смотри только на «кто тяжелее». Сравни произведения силы и плеча.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-transfer&quot;,
+      &quot;phase&quot;: &quot;transfer&quot;,
+      &quot;say&quot;: &quot;Так работают ножницы, гаечный ключ и тачка: правильное плечо экономит силу.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-outro&quot;,
+      &quot;phase&quot;: &quot;summary&quot;,
+      &quot;say&quot;: &quot;Итог. Эм равно эф на дэ. Равновесие — эф один дэ один равно эф два дэ два. Сними Авто-демо и поймай баланс сам.&quot;
+    }
+  ]
+}</pre>
+    <button type="button" class="copy" data-copy="json-rychag">копировать JSON</button>
+  </article>
+
+  <article class="lab" id="posled-parallel">
+    <header>
+      <h2>Последовательно и параллельно</h2>
+      <div class="links">
+        <a href="posled-parallel.html">открыть слайды</a>
+        <a href="posled-parallel.narration.txt">narration.txt</a>
+        <a href="posled-parallel.manifest.json">manifest.json</a>
+        <button type="button" class="copy" data-copy="full-posled-parallel">копировать весь текст</button>
+      </div>
+    </header>
+    <h3>1. Полный текст для TTS (fullNarration)</h3>
+    <p class="hint">Это основной контекст: голосовая модель может прочитать подряд.</p>
+    <pre id="full-posled-parallel" class="block">В гирлянде одна лампа гасит всё. В комнате — нет. Разница в том, как соединены лампы. Две одинаковые лампы. Режим: последовательно или параллельно. Можно «выкрутить» лампу кнопкой. Сначала ряд. Обе включены. Ток один на двоих. Лампы горят, но каждая делит напряжение. Вопрос. В последовательной схеме выкрутили первую лампу. Вторая будет гореть? Нет. Цепь разорвана. Ток ноль. Обе тёмные — как старая гирлянда. В ряду сопротивления складываются. В параллели складываются проводимости: один на эр равно один на эр один плюс один на эр два. Теперь параллельно. Обе горят ярче: на каждую почти полное напряжение источника. Параллельно. Выключили первую. Что со второй? Вторая продолжает гореть. У неё свой путь. Как в квартире. Не думай, что «всегда всё гаснет». Сначала спроси: это ряд или ветки? Дома розетки параллельно. Старые гирлянды часто в ряд. Батарейки в ряд дают большее напряжение. Итог. Ряд — один путь, обрыв гасит всё. Параллель — ветки, одна может гореть одна. Сними Авто-демо и проверь сам.</pre>
+    <h3>2. Реплики по шагам (beats) — для синхрона со слайдами/авто-демо</h3>
+    <ol class="beats">
+      <li><span class="phase">hook</span> <code>b-hook</code> <span class="say">В гирлянде одна лампа гасит всё. В комнате — нет. Разница в том, как соединены лампы.</span></li>
+<li><span class="phase">setup</span> <code>b-setup</code> <span class="say">Две одинаковые лампы. Режим: последовательно или параллельно. Можно «выкрутить» лампу кнопкой.</span></li>
+<li><span class="phase">demo</span> <code>b-ser-on</code> <span class="say">Сначала ряд. Обе включены. Ток один на двоих. Лампы горят, но каждая делит напряжение.</span></li>
+<li><span class="phase">question</span> <code>b-q1</code> <span class="say">Вопрос. В последовательной схеме выкрутили первую лампу. Вторая будет гореть?</span></li>
+<li><span class="phase">answer</span> <code>b-ser-off</code> <span class="say">Нет. Цепь разорвана. Ток ноль. Обе тёмные — как старая гирлянда.</span></li>
+<li><span class="phase">formula</span> <code>b-formula</code> <span class="say">В ряду сопротивления складываются. В параллели складываются проводимости: один на эр равно один на эр один плюс один на эр два.</span></li>
+<li><span class="phase">demo</span> <code>b-par-on</code> <span class="say">Теперь параллельно. Обе горят ярче: на каждую почти полное напряжение источника.</span></li>
+<li><span class="phase">question</span> <code>b-q2</code> <span class="say">Параллельно. Выключили первую. Что со второй?</span></li>
+<li><span class="phase">answer</span> <code>b-par-off</code> <span class="say">Вторая продолжает гореть. У неё свой путь. Как в квартире.</span></li>
+<li><span class="phase">explain</span> <code>b-misconcept</code> <span class="say">Не думай, что «всегда всё гаснет». Сначала спроси: это ряд или ветки?</span></li>
+<li><span class="phase">transfer</span> <code>b-transfer</code> <span class="say">Дома розетки параллельно. Старые гирлянды часто в ряд. Батарейки в ряд дают большее напряжение.</span></li>
+<li><span class="phase">summary</span> <code>b-outro</code> <span class="say">Итог. Ряд — один путь, обрыв гасит всё. Параллель — ветки, одна может гореть одна. Сними Авто-демо и проверь сам.</span></li>
+    </ol>
+    <h3>3. JSON для API</h3>
+    <pre class="block small" id="json-posled-parallel">{
+  &quot;title&quot;: &quot;Последовательно и параллельно&quot;,
+  &quot;fullNarration&quot;: &quot;В гирлянде одна лампа гасит всё. В комнате — нет. Разница в том, как соединены лампы. Две одинаковые лампы. Режим: последовательно или параллельно. Можно «выкрутить» лампу кнопкой. Сначала ряд. Обе включены. Ток один на двоих. Лампы горят, но каждая делит напряжение. Вопрос. В последовательной схеме выкрутили первую лампу. Вторая будет гореть? Нет. Цепь разорвана. Ток ноль. Обе тёмные — как старая гирлянда. В ряду сопротивления складываются. В параллели складываются проводимости: один на эр равно один на эр один плюс один на эр два. Теперь параллельно. Обе горят ярче: на каждую почти полное напряжение источника. Параллельно. Выключили первую. Что со второй? Вторая продолжает гореть. У неё свой путь. Как в квартире. Не думай, что «всегда всё гаснет». Сначала спроси: это ряд или ветки? Дома розетки параллельно. Старые гирлянды часто в ряд. Батарейки в ряд дают большее напряжение. Итог. Ряд — один путь, обрыв гасит всё. Параллель — ветки, одна может гореть одна. Сними Авто-демо и проверь сам.&quot;,
+  &quot;beats&quot;: [
+    {
+      &quot;id&quot;: &quot;b-hook&quot;,
+      &quot;phase&quot;: &quot;hook&quot;,
+      &quot;say&quot;: &quot;В гирлянде одна лампа гасит всё. В комнате — нет. Разница в том, как соединены лампы.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-setup&quot;,
+      &quot;phase&quot;: &quot;setup&quot;,
+      &quot;say&quot;: &quot;Две одинаковые лампы. Режим: последовательно или параллельно. Можно «выкрутить» лампу кнопкой.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-ser-on&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Сначала ряд. Обе включены. Ток один на двоих. Лампы горят, но каждая делит напряжение.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-q1&quot;,
+      &quot;phase&quot;: &quot;question&quot;,
+      &quot;say&quot;: &quot;Вопрос. В последовательной схеме выкрутили первую лампу. Вторая будет гореть?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-ser-off&quot;,
+      &quot;phase&quot;: &quot;answer&quot;,
+      &quot;say&quot;: &quot;Нет. Цепь разорвана. Ток ноль. Обе тёмные — как старая гирлянда.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-formula&quot;,
+      &quot;phase&quot;: &quot;formula&quot;,
+      &quot;say&quot;: &quot;В ряду сопротивления складываются. В параллели складываются проводимости: один на эр равно один на эр один плюс один на эр два.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-par-on&quot;,
+      &quot;phase&quot;: &quot;demo&quot;,
+      &quot;say&quot;: &quot;Теперь параллельно. Обе горят ярче: на каждую почти полное напряжение источника.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-q2&quot;,
+      &quot;phase&quot;: &quot;question&quot;,
+      &quot;say&quot;: &quot;Параллельно. Выключили первую. Что со второй?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-par-off&quot;,
+      &quot;phase&quot;: &quot;answer&quot;,
+      &quot;say&quot;: &quot;Вторая продолжает гореть. У неё свой путь. Как в квартире.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-misconcept&quot;,
+      &quot;phase&quot;: &quot;explain&quot;,
+      &quot;say&quot;: &quot;Не думай, что «всегда всё гаснет». Сначала спроси: это ряд или ветки?&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-transfer&quot;,
+      &quot;phase&quot;: &quot;transfer&quot;,
+      &quot;say&quot;: &quot;Дома розетки параллельно. Старые гирлянды часто в ряд. Батарейки в ряд дают большее напряжение.&quot;
+    },
+    {
+      &quot;id&quot;: &quot;b-outro&quot;,
+      &quot;phase&quot;: &quot;summary&quot;,
+      &quot;say&quot;: &quot;Итог. Ряд — один путь, обрыв гасит всё. Параллель — ветки, одна может гореть одна. Сними Авто-демо и проверь сам.&quot;
+    }
+  ]
+}</pre>
+    <button type="button" class="copy" data-copy="json-posled-parallel">копировать JSON</button>
+  </article>
+
+</div>
+<div class="ok" id="ok">Скопировано</div>
+<script>
+document.querySelectorAll('.copy').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    const id = btn.getAttribute('data-copy');
+    const el = document.getElementById(id);
+    const text = el ? el.innerText : '';
+    try {
+      await navigator.clipboard.writeText(text);
+      const ok = document.getElementById('ok');
+      ok.classList.add('show');
+      setTimeout(()=>ok.classList.remove('show'), 1200);
+    } catch(e) {
+      const r = document.createRange(); r.selectNodeContents(el);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      alert('Выделили текст — скопируй Cmd+C');
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -307,6 +307,52 @@
   .dot.active{background:var(--accent);transform:scale(1.25)}
   .slide-counter{font-size:.78rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 
+
+  /* voice script UI */
+  .voice-fab{
+    position:fixed;right:14px;bottom:78px;z-index:40;
+    border:none;cursor:pointer;font:inherit;font-weight:800;font-size:.82rem;
+    padding:12px 14px;border-radius:999px;background:#1a1830;color:#f2efff;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);border:1px solid rgba(168,156,255,.35);
+  }
+  .voice-fab:hover{background:#241f45}
+  .voice-modal{
+    position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+    padding:16px;background:rgba(15,16,32,.55);backdrop-filter:blur(6px);
+  }
+  .voice-modal.open{display:flex}
+  .voice-modal .vm-card{
+    width:min(720px,100%);max-height:min(84vh,820px);overflow:auto;
+    background:#1a1830;color:#f2efff;border-radius:18px;border:1px solid rgba(168,156,255,.3);
+    box-shadow:0 20px 50px rgba(0,0,0,.4);padding:18px 18px 22px;
+  }
+  .voice-modal .vm-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+  .voice-modal h3{font-size:1.05rem;margin:0}
+  .voice-modal .vm-close{border:none;background:transparent;color:#a89cff;font-size:1.4rem;cursor:pointer;line-height:1}
+  .voice-modal .vm-hint{font-size:.82rem;color:#9b94c4;margin-bottom:10px}
+  .voice-modal pre{
+    white-space:pre-wrap;word-break:break-word;background:#0c0d18;border-radius:12px;
+    padding:12px;font-size:.88rem;line-height:1.5;border:1px solid rgba(168,156,255,.2);
+    max-height:28vh;overflow:auto;margin:0 0 12px;
+  }
+  .voice-modal ol{margin:0 0 12px 1.1em;font-size:.88rem}
+  .voice-modal li{margin:6px 0}
+  .voice-modal .phase{color:#7ef0ff;font-size:.72rem;font-weight:800;text-transform:uppercase;margin-right:6px}
+  .voice-modal .vm-actions{display:flex;flex-wrap:wrap;gap:8px}
+  .voice-modal .vm-btn{
+    border:none;cursor:pointer;font:inherit;font-weight:700;font-size:.85rem;
+    padding:10px 14px;border-radius:999px;background:#7359ff;color:#fff;
+  }
+  .voice-modal .vm-btn.ghost{background:transparent;border:1px solid rgba(168,156,255,.4);color:#e8e4ff}
+  .script-slide pre{
+    text-align:left;white-space:pre-wrap;word-break:break-word;
+    background:#1a1830;color:#f2efff;border-radius:14px;padding:14px;
+    font-size:.86rem;line-height:1.5;max-height:42vh;overflow:auto;width:100%;
+    border:1px solid rgba(168,156,255,.25);
+  }
+  .script-slide .script-list{text-align:left;width:100%;max-width:640px;margin:10px auto 0;font-size:.88rem}
+  .script-slide .script-list li{margin:8px 0}
+
 </style>
 </head>
 <body>
@@ -562,6 +608,27 @@
     <button type="button" class="nav-btn" id="btnNext">Далее →</button>
   </nav>
 </div>
+
+<button type="button" class="voice-fab" id="voiceFab" title="Текст для голосовой ИИ">🎤 Скрипт</button>
+<div class="voice-modal" id="voiceModal" aria-hidden="true">
+  <div class="vm-card" role="dialog" aria-labelledby="vmTitle">
+    <div class="vm-h">
+      <h3 id="vmTitle">Текст для голосовой ИИ</h3>
+      <button type="button" class="vm-close" id="vmClose" aria-label="Закрыть">×</button>
+    </div>
+    <p class="vm-hint">Это контекст озвучки: полный текст + реплики по шагам. Скопируй в voice-модель. Также: <code>window.__LAB.exportForTTS()</code></p>
+    <h4 style="margin:0 0 6px;font-size:.8rem;color:#a89cff;letter-spacing:.06em;text-transform:uppercase">fullNarration</h4>
+    <pre id="vmFull">…</pre>
+    <h4 style="margin:0 0 6px;font-size:.8rem;color:#a89cff;letter-spacing:.06em;text-transform:uppercase">beats</h4>
+    <ol id="vmBeats"></ol>
+    <div class="vm-actions">
+      <button type="button" class="vm-btn" id="vmCopyFull">Копировать весь текст</button>
+      <button type="button" class="vm-btn ghost" id="vmCopyJson">Копировать JSON</button>
+      <a class="vm-btn ghost" href="voice-context.html" style="text-decoration:none;display:inline-flex;align-items:center">Все темы</a>
+    </div>
+  </div>
+</div>
+
 
 <script>
 (() => {
@@ -1064,6 +1131,55 @@
 
   window.addEventListener('resize', () => { if (idx === 2) resize(); });
   // hash restore
+  
+  // ── voice script UI (full context for TTS) ──
+  (function setupVoiceUI(){
+    function fill(){
+      if(!window.__LAB) return;
+      const beats = window.__LAB.getVoiceBeats ? window.__LAB.getVoiceBeats() : (window.__LAB.manifest?.voiceScript?.beats||[]);
+      const full = window.__LAB.getNarrationText ? window.__LAB.getNarrationText() : beats.map(b=>b.say).join(' ');
+      const pre = document.getElementById('vmFull');
+      const ol = document.getElementById('vmBeats');
+      const sPre = document.getElementById('scriptSlideFull');
+      const sOl = document.getElementById('scriptSlideBeats');
+      if(pre) pre.textContent = full || '—';
+      if(sPre) sPre.textContent = full || '—';
+      function fillOl(node){
+        if(!node) return;
+        node.innerHTML = '';
+        beats.forEach((b,i)=>{
+          const li=document.createElement('li');
+          li.innerHTML = '<span class="phase">'+(b.phase||('#'+(i+1)))+'</span> '+ (b.say||'');
+          node.appendChild(li);
+        });
+      }
+      fillOl(ol); fillOl(sOl);
+      window.__voicePack = {
+        fullNarration: full,
+        beats: beats.map(b=>({id:b.id, phase:b.phase, say:b.say})),
+        questions: window.__LAB.getQuestions ? window.__LAB.getQuestions() : []
+      };
+    }
+    const modal = document.getElementById('voiceModal');
+    const open = ()=>{ fill(); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); };
+    const close = ()=>{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); };
+    document.getElementById('voiceFab')?.addEventListener('click', open);
+    document.getElementById('vmClose')?.addEventListener('click', close);
+    modal?.addEventListener('click', e=>{ if(e.target===modal) close(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+    document.getElementById('vmCopyFull')?.addEventListener('click', async ()=>{
+      fill();
+      try{ await navigator.clipboard.writeText(window.__voicePack.fullNarration); alert('Полный текст скопирован'); }catch(_){ alert('Скопируй вручную из окна'); }
+    });
+    document.getElementById('vmCopyJson')?.addEventListener('click', async ()=>{
+      fill();
+      try{ await navigator.clipboard.writeText(JSON.stringify(window.__voicePack, null, 2)); alert('JSON скопирован'); }catch(_){ }
+    });
+    // fill when ready
+    setTimeout(fill, 50);
+    setTimeout(fill, 400);
+  })();
+
   const m = location.hash.match(/s(\d+)/i);
   const start = m ? Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1)) : 0;
   go(start);
